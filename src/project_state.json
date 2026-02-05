@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "OFS is a file sharing web app currently built on the Internet Computer with Internet Identity auth and a canister-backed storage/metadata model. The user now wants a major direction change toward a fully offline-capable experience: no login screen (open directly), link-based sharing that works without any network/Wi‑Fi, and transfers that save directly into the receiver’s device storage.",
+  "projectStateVersion": 71,
+  "summary": "OFS is a web-based “wireless file sharing” application built on the Internet Computer. Users authenticate via Internet Identity, create a basic profile, appear in an online-users list, and can upload/share files. The backend (Motoko canister) stores user profiles, file metadata + blob payloads, transfer records, AI-processing audit records, and time-limited QR-code sharing sessions. The frontend (React + TanStack React Query + Tailwind/shadcn UI) provides a tabbed dashboard for file transfer, transfer history, online users, and “AI features” (client-side image compression + client-side file type/metadata recognition) with results recorded to the canister. A QR workflow exists to create a share session for a file and to scan QR codes via camera (jsQR) to fetch file metadata by session ID. The app also includes an installable PWA/offline mode with an Offline dashboard and client-side utilities to package/share files locally (device download/save) without requiring canister connectivity.",
   "existing_features": [
     {
       "id": "IF-1",
@@ -192,62 +192,68 @@
       "version": 1
     },
     {
-      "id": "feature-remove-the-mandatory-internet-identity-login-gate-so-the-app-can-open-directly-in-a-usable-offline-no-login-mode-without-showing-the-loginscreen-by-default",
-      "title": "Remove the mandatory Internet Identity login gate so the app can open directly in a usable \"Offline (no login)\" mode, without showing the LoginScreen by default.",
-      "reqIds": [
-        "REQ-1"
+      "id": "IF-18",
+      "title": "Offline/PWA file sharing mode",
+      "synonyms": [
+        "Offline dashboard",
+        "PWA offline share"
       ],
+      "description": "Provides an OfflineDashboard/OfflineFileShare flow for local-only sharing when not connected to the IC backend. Includes PWA assets (manifest + service worker registration) and client-side utilities for preparing offline share packages and saving files to the device.",
+      "reqIds": [],
       "version": 1
     },
     {
-      "id": "feature-prevent-backend-authenticated-react-query-hooks-from-running-when-the-user-is-not-authenticated-so-anonymous-guest-usage-does-not-trigger-backend-authorization-traps-e-g-getcalleruserprofile-getonlineusers-uploadfile-qr-session-calls",
-      "title": "Prevent backend-authenticated React Query hooks from running when the user is not authenticated, so anonymous/guest usage does not trigger backend authorization traps (e.g., getCallerUserProfile, getOnlineUsers, uploadFile, QR session calls).",
-      "reqIds": [
-        "REQ-2"
+      "id": "IF-19",
+      "title": "Reusable build-template for OFS (React + Motoko + shadcn UI) with deploy tooling",
+      "synonyms": [
+        "build-template",
+        "ICP CLI export template",
+        "docker/deploy scripts"
       ],
+      "description": "Adds/updates a reusable build-template directory including Dockerfile, deploy.sh, icp.yaml, canister YAMLs, workspace package configs, image prune/resize scripts, and a vendored shadcn/ui component set + frontend tooling (ESLint rules, Vite/Tailwind configs) to standardize building/deploying the OFS stack.",
+      "reqIds": [],
       "version": 1
     },
     {
-      "id": "feature-implement-offline-file-sharing-that-works-with-zero-network-connectivity-between-sender-and-receiver-by-adding-an-offline-share-package-workflow-sender-exports-a-self-contained-share-file-e-g-a-single-html-file-that-embeds-the-selected-file-bytes-and-minimal-metadata-receiver-opens-the-share-file-locally-no-network-and-can-save-the-embedded-file-to-their-device",
-      "title": "Implement offline file sharing that works with zero network connectivity between sender and receiver by adding an \"Offline Share Package\" workflow: sender exports a self-contained share file (e.g., a single .html file) that embeds the selected file bytes and minimal metadata; receiver opens the share file locally (no network) and can save the embedded file to their device.",
-      "reqIds": [
-        "REQ-3"
+      "id": "IF-20",
+      "title": "QR receive dialog (frontend) with standardized QR payload parsing",
+      "synonyms": [
+        "QRReceiveDialog",
+        "qrPayload",
+        "Receive via QR"
       ],
+      "description": "Adds a dedicated receive flow for QR-based sharing that parses a standardized QR payload (e.g., session identifier) and routes it into the existing QR session metadata fetch + transfer UI flow.",
+      "reqIds": [],
       "version": 1
     },
     {
-      "id": "feature-add-a-receiver-side-save-to-device-action-for-any-received-file-in-offline-mode-using-the-file-system-access-api-when-available-showsavefilepicker-and-falling-back-to-a-normal-browser-download-when-not-available",
-      "title": "Add a receiver-side \"Save to device\" action for any received file in offline mode, using the File System Access API when available (showSaveFilePicker) and falling back to a normal browser download when not available.",
-      "reqIds": [
-        "REQ-4"
+      "id": "IF-21",
+      "title": "Settings dialog (frontend) for app configuration and utilities",
+      "synonyms": [
+        "SettingsDialog",
+        "client settings"
       ],
+      "description": "Adds a Settings dialog in the frontend UI to expose application/settings-related actions and configuration utilities from within the dashboard shell.",
+      "reqIds": [],
       "version": 1
     },
     {
-      "id": "feature-make-the-app-offline-capable-after-first-load-by-caching-the-app-shell-and-static-assets-for-offline-use-pwa-style-so-users-can-reopen-the-app-without-network-connectivity",
-      "title": "Make the app offline-capable after first load by caching the app shell and static assets for offline use (PWA-style), so users can reopen the app without network connectivity.",
-      "reqIds": [
-        "REQ-5"
+      "id": "IF-22",
+      "title": "Recently received files UI (frontend)",
+      "synonyms": [
+        "RecentlyReceived",
+        "recent downloads",
+        "recent transfers (received)"
       ],
+      "description": "Adds a dedicated UI component to show a list of recently received/downloaded files within the dashboard experience, enabling quick access to recent inbound items after QR-based receive or transfer flows.",
+      "reqIds": [],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Enable fully offline file sharing (no network/Wi‑Fi) including link-based sharing between users/devices",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Remove/disable Internet Identity login UI so the app opens directly without authentication",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Ensure received files are written/saved to the receiver’s device storage (download/save-to-device flow)",
+      "summary": "Add a dedicated top-level dashboard tab for “Sent Downloads” alongside Transfer/History/Users/AI Features (instead of placing it inside the Settings dialog).",
       "reqIds": [],
       "status": "pending"
     }
@@ -255,22 +261,17 @@
   "architectural_notes": [
     "Internet Identity integration wrapped in a React Context provider with persisted identity loading on startup and explicit login/logout handling.",
     "Backend access is encapsulated via a generated canister actor; a custom useActor hook recreates the actor on identity changes and mass-invalidates/refetches dependent React Query caches.",
-    "TanStack React Query is used as the primary data-fetching/caching layer; mutations invalidate related query keys to keep UI consistent.",
     "Motoko backend uses an explicit role-based access control module (admin/user/guest) and a mixin to expose authorization APIs; first admin assignment is gated by an env-provided token.",
     "Motoko backend stores all application data in in-memory Map structures (profiles, files, transfers, AI results, QR sessions).",
     "QR sharing is modeled as a session object with validity + expiry, stored server-side and enforced during fetch/validate/invalidate operations.",
-    "Frontend QR scanning is implemented with a camera hook (getUserMedia) + dynamically loaded jsQR script, providing mobile camera switching.",
     "Backend includes a “Caffeine storage” mixin for blob lifecycle/GC and authorized gateway management, relying on external cashier/gateway principals via env vars.",
-    "A migration module exists to evolve stored state by adding qrCodeSessions to prior state shapes.",
-    "UI uses Tailwind + next-themes for light/dark theming and shadcn-style component primitives; toast notifications are provided via sonner."
+    "PWA support added (manifest + service worker) with explicit registration to enable installability and offline-capable UX flows.",
+    "Offline sharing mode implemented as separate dashboard/components with client-side packaging/saving utilities (no canister dependency for the offline flow).",
+    "Frontend template/tooling includes custom ESLint rules (e.g., prohibiting BigInt in React Query keys and enforcing InternetIdentityProvider usage) alongside a vendored shadcn/ui component library for consistent UI primitives.",
+    "Build-template and core components were refreshed to newer component versions (authorization/blob-storage v4.0.0, core-infrastructure v1.0.2) with corresponding updates across backend/frontend and deploy tooling (icp.yaml/deploy.sh/Dockerfile)."
   ],
   "known_issues": [
-    "Frontend calls useGetCallerUserProfile even when unauthenticated; when using an anonymous actor, backend authorization will trap and the query will error (should be disabled unless authenticated or backend should allow guest reads).",
-    "File transfer flow is largely simulated in the UI; handleTransfer uploads files but does not call recordTransfer, so backend transfer history may remain empty unless recorded elsewhere.",
-    "QRCodeDialog generates a non-standard “QR-like” pattern via canvas hashing rather than a real QR encoding; jsQR-based scanning will likely fail to decode these images reliably.",
     "AI image compression is performed client-side; backend compressImage currently only records a result and returns the original blob (no real server-side compression).",
-    "useCompressImage internally generates an ID, while AIFeatures separately generates another ID for recordAIProcessing; this can create inconsistent/mismatched AI result records.",
-    "AIFeatures records metadata using React state (originalSize) that may not be updated synchronously, potentially recording incorrect original size values.",
     "Backend stores full file blobs directly in canister memory and accepts them as single arguments; this will not scale to large files due to IC message/canister memory constraints (no chunking/streaming).",
     "Environment variable name for the storage cashier principal appears misspelled as \"CAFFFEINE_STORAGE_CASHIER_PRINCIPAL\" (triple 'F'), which may cause deployment/configuration errors.",
     "Two different global CSS files are present (frontend/index.css and frontend/src/index.css) with different token sets; this can cause styling/theme inconsistency depending on bundler config.",

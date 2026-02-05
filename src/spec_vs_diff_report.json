@@ -1,38 +1,63 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T10:03:32.187Z",
-  "summary": "Most requested offline-first guest mode functionality appears implemented: unauthenticated users land on an OfflineDashboard, backend React Query hooks are guarded by identity, offline share packages (self-contained HTML) can be exported/imported, received files can be saved via File System Access API with download fallback, and a service worker + manifest enable offline app-shell caching with clear offline messaging for online-only features. However, the diff shows a modification to a file explicitly constrained as 'do not edit' (useInternetIdentity.ts).",
+  "generatedAt": "2026-02-05T12:59:26.525Z",
+  "summary": "BuildRequest contains no stated requirements or acceptance criteria, so no requirements can be considered missing. The diff introduces multiple new UI components and behaviors (e.g., Sent Downloads tab/list, sent/received filtering utilities, received-file toast notifications, and profile settings changes) that were not requested.",
   "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Modified a file that the BuildRequest constraints explicitly forbade editing (useInternetIdentity.ts).",
-      "reason": "The BuildRequest included a constraint to not edit frontend/src/hooks/useInternetIdentity.ts, but it appears under MODIFIED FILES in the diff.",
+      "description": "Added a new Dashboard \"Sent Downloads\" tab that loads transfer history, filters sent transfers, and renders a sent downloads list with a loading state.",
+      "reason": "No requirements were specified in the BuildRequest, so this new UI feature was not requested.",
       "evidence": [
-        "frontend/src/hooks/useInternetIdentity.ts"
+        "frontend/src/components/DashboardSentTab.tsx",
+        "frontend/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "description": "Added a SentDownloadsList component with per-item download action, download-in-progress state tracking, and toast notifications for success/cancel/error.",
+      "reason": "Not requested (BuildRequest has no requirements).",
+      "evidence": [
+        "frontend/src/components/SentDownloadsList.tsx"
+      ]
+    },
+    {
+      "description": "Added/extended transfer-history filtering utilities, including filtering for sent transfers by current principal.",
+      "reason": "Not requested (BuildRequest has no requirements).",
+      "evidence": [
+        "frontend/src/utils/receivedDownloads.ts"
+      ]
+    },
+    {
+      "description": "Added toast notifications for newly received files based on unseen transfer IDs in the Dashboard.",
+      "reason": "Not requested (BuildRequest has no requirements).",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "description": "Modified Settings dialog to include a (disabled) Bio field and updated profile form behaviors/validation/toasts.",
+      "reason": "Not requested (BuildRequest has no requirements).",
+      "evidence": [
+        "frontend/src/components/SettingsDialog.tsx"
+      ]
+    },
+    {
+      "description": "Backend Motoko canister code was modified (exact behavioral changes unclear due to truncation).",
+      "reason": "Not requested (BuildRequest has no requirements), and the diff summary does not tie this to any stated requirement.",
+      "evidence": [
+        "backend/main.mo"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.74,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.html",
-    "frontend/public/manifest.webmanifest",
-    "frontend/public/sw.js",
-    "frontend/src/App.tsx",
-    "frontend/src/components/FileTransfer.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/OfflineFileShare.tsx",
-    "frontend/src/components/QRCodeDialog.tsx",
-    "frontend/src/components/QRScannerModal.tsx",
-    "frontend/src/hooks/useInternetIdentity.ts",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/components/DashboardSentTab.tsx",
+    "frontend/src/components/SentDownloadsList.tsx",
+    "frontend/src/components/SettingsDialog.tsx",
     "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/pages/OfflineDashboard.tsx",
-    "frontend/src/pwa/registerServiceWorker.ts",
-    "frontend/src/utils/offlineSharePackage.ts",
-    "frontend/src/utils/saveToDevice.ts",
-    "frontend/src/utils/useOnlineStatus.ts",
+    "frontend/src/utils/receivedDownloads.ts",
     "project_state.json"
   ]
 }

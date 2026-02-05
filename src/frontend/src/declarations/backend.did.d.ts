@@ -29,15 +29,8 @@ export interface FileMetadata {
   'uploader' : Principal,
   'uploadTime' : Time,
 }
-export interface QRCodeSession {
-  'creator' : Principal,
-  'expiryTime' : Time,
-  'creationTime' : Time,
-  'fileId' : string,
-  'isValid' : boolean,
-}
 export type Time = bigint;
-export interface TransferRecord {
+export interface TransferRecordData {
   'id' : string,
   'transferTime' : Time,
   'file' : FileMetadata,
@@ -84,18 +77,14 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'compressImage' : ActorMethod<[string, ExternalBlob, bigint], ExternalBlob>,
-  'createQRCodeSession' : ActorMethod<[string, bigint], string>,
-  'fetchFileMetadataByQRCode' : ActorMethod<[string], [] | [FileMetadata]>,
   'getAIProcessingResult' : ActorMethod<[string], AIProcessingResult>,
   'getAllAIProcessingResults' : ActorMethod<[], Array<AIProcessingResult>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getFileMetadata' : ActorMethod<[string], FileMetadata>,
   'getOnlineUsers' : ActorMethod<[], Array<Principal>>,
-  'getQRCodeSession' : ActorMethod<[string], QRCodeSession>,
-  'getTransferHistory' : ActorMethod<[Principal], Array<TransferRecord>>,
+  'getTransferHistory' : ActorMethod<[Principal], Array<TransferRecordData>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
-  'invalidateQRCodeSession' : ActorMethod<[string], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'recordAIProcessing' : ActorMethod<
     [
@@ -118,7 +107,6 @@ export interface _SERVICE {
     [string, string, bigint, string, ExternalBlob],
     undefined
   >,
-  'validateQRCodeSession' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -1,9 +1,14 @@
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Wifi } from 'lucide-react';
+import { Loader2, Wifi, FileText } from 'lucide-react';
+import { BRANDING } from '../constants/branding';
 
-export default function LoginScreen() {
+interface LoginScreenProps {
+  onEnterOffline?: () => void;
+}
+
+export default function LoginScreen({ onEnterOffline }: LoginScreenProps) {
   const { login, loginStatus } = useInternetIdentity();
 
   const isLoggingIn = loginStatus === 'logging-in';
@@ -16,9 +21,9 @@ export default function LoginScreen() {
             <img src="/assets/generated/ofs-logo-transparent.dim_200x200.png" alt="OFS Logo" className="h-16 w-16" />
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold tracking-tight">Welcome to OFS</CardTitle>
+            <CardTitle className="text-3xl font-bold tracking-tight">Welcome to {BRANDING.appName}</CardTitle>
             <CardDescription className="mt-2 text-base">
-              Wireless file sharing made simple and secure
+              {BRANDING.tagline}
             </CardDescription>
           </div>
         </CardHeader>
@@ -54,6 +59,19 @@ export default function LoginScreen() {
               'Login to Get Started'
             )}
           </Button>
+
+          {onEnterOffline && (
+            <Button
+              onClick={onEnterOffline}
+              disabled={isLoggingIn}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Continue as Guest (Offline Mode)
+            </Button>
+          )}
 
           <p className="text-center text-xs text-muted-foreground">
             Secure authentication powered by Internet Identity

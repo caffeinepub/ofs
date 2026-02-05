@@ -14,14 +14,16 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export type Time = bigint;
-export interface QRCodeSession {
-    creator: Principal;
-    expiryTime: Time;
-    creationTime: Time;
-    fileId: string;
-    isValid: boolean;
+export interface TransferRecordData {
+    id: string;
+    transferTime: Time;
+    file: FileMetadata;
+    sender: Principal;
+    success: boolean;
+    receiver: Principal;
+    transferDuration: bigint;
 }
+export type Time = bigint;
 export interface FileMetadata {
     id: string;
     blob: ExternalBlob;
@@ -38,15 +40,6 @@ export interface AIProcessingResult {
     processedAt: Time;
     resultType: Variant_imageCompression_fileRecognition;
     processedFile?: ExternalBlob;
-}
-export interface TransferRecord {
-    id: string;
-    transferTime: Time;
-    file: FileMetadata;
-    sender: Principal;
-    success: boolean;
-    receiver: Principal;
-    transferDuration: bigint;
 }
 export interface UserProfile {
     displayName: string;
@@ -65,18 +58,14 @@ export enum Variant_imageCompression_fileRecognition {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     compressImage(id: string, image: ExternalBlob, quality: bigint): Promise<ExternalBlob>;
-    createQRCodeSession(fileId: string, expiryDuration: bigint): Promise<string>;
-    fetchFileMetadataByQRCode(qrId: string): Promise<FileMetadata | null>;
     getAIProcessingResult(id: string): Promise<AIProcessingResult>;
     getAllAIProcessingResults(): Promise<Array<AIProcessingResult>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getFileMetadata(fileId: string): Promise<FileMetadata>;
     getOnlineUsers(): Promise<Array<Principal>>;
-    getQRCodeSession(qrId: string): Promise<QRCodeSession>;
-    getTransferHistory(user: Principal): Promise<Array<TransferRecord>>;
+    getTransferHistory(user: Principal): Promise<Array<TransferRecordData>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
-    invalidateQRCodeSession(qrId: string): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     recordAIProcessing(id: string, resultType: Variant_imageCompression_fileRecognition, metadata: string, processedFile: ExternalBlob | null): Promise<void>;
     recordTransfer(id: string, sender: Principal, receiver: Principal, file: FileMetadata, duration: bigint, success: boolean): Promise<void>;
@@ -84,5 +73,4 @@ export interface backendInterface {
     setOnlineStatus(online: boolean): Promise<void>;
     updateProfile(displayName: string, avatarUrl: string): Promise<void>;
     uploadFile(id: string, name: string, size: bigint, fileType: string, blob: ExternalBlob): Promise<void>;
-    validateQRCodeSession(qrId: string): Promise<boolean>;
 }

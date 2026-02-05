@@ -11,11 +11,9 @@ import Int "mo:core/Int";
 import Principal "mo:core/Principal";
 import Storage "blob-storage/Storage";
 
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
-
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -57,19 +55,21 @@ actor {
     processedFile : ?Storage.ExternalBlob;
   };
 
-  public type QRCodeSession = {
-    fileId : Text;
-    creator : Principal;
-    isValid : Bool;
-    creationTime : Time.Time;
-    expiryTime : Time.Time;
+  public type TransferRecordData = TransferRecord;
+  public type FileMetadataWithBlob = {
+    id : Text;
+    name : Text;
+    size : Nat;
+    fileType : Text;
+    uploader : Principal;
+    uploadTime : Time.Time;
+    blob : Storage.ExternalBlob;
   };
 
   let userProfiles = Map.empty<Principal, UserProfile>();
   let fileMetadata = Map.empty<Text, FileMetadata>();
   let transferRecords = Map.empty<Text, TransferRecord>();
   let aiProcessingResults = Map.empty<Text, AIProcessingResult>();
-  let qrCodeSessions = Map.empty<Text, QRCodeSession>();
 
   module TransferRecord {
     public func compareByTime(a : TransferRecord, b : TransferRecord) : Order.Order {
@@ -189,7 +189,7 @@ actor {
     transferRecords.add(id, record);
   };
 
-  public query ({ caller }) func getTransferHistory(user : Principal) : async [TransferRecord] {
+  public query ({ caller }) func getTransferHistory(user : Principal) : async [TransferRecordData] {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view transfer history");
     };
@@ -206,6 +206,7 @@ actor {
       };
     };
 
+    // Sort and convert to array
     userRecords.toArray().sort(TransferRecord.compareByTime);
   };
 
@@ -340,129 +341,5 @@ actor {
       };
     };
     userResults.toArray();
-  };
-
-  // QR Code Functionality
-
-  public shared ({ caller }) func createQRCodeSession(fileId : Text, expiryDuration : Nat) : async Text {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can create QR codes");
-    };
-
-    // Verify file exists and belongs to the caller
-    switch (fileMetadata.get(fileId)) {
-      case (?metadata) {
-        if (metadata.uploader != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: Can only create QR codes for your own files");
-        };
-      };
-      case (null) { Runtime.trap("File not found") };
-    };
-
-    let sessionId = fileId # "-" # Time.now().toText();
-    let expiryTime = Time.now() + expiryDuration;
-
-    let session : QRCodeSession = {
-      fileId;
-      creator = caller;
-      isValid = true;
-      creationTime = Time.now();
-      expiryTime;
-    };
-
-    qrCodeSessions.add(sessionId, session);
-
-    sessionId;
-  };
-
-  public shared ({ caller }) func validateQRCodeSession(qrId : Text) : async Bool {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can validate QR codes");
-    };
-
-    switch (qrCodeSessions.get(qrId)) {
-      case (?session) {
-        if (not session.isValid) {
-          return false;
-        };
-
-        if (Time.now() > session.expiryTime) {
-          return false;
-        };
-
-        switch (fileMetadata.get(session.fileId)) {
-          case (?_) { true };
-          case (null) { false };
-        };
-      };
-      case (null) { false };
-    };
-  };
-
-  public shared ({ caller }) func invalidateQRCodeSession(qrId : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can invalidate QR codes");
-    };
-
-    switch (qrCodeSessions.get(qrId)) {
-      case (?session) {
-        // Only the creator or an admin can invalidate the session
-        if (session.creator != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: Only the QR code creator can invalidate it");
-        };
-
-        let updatedSession : QRCodeSession = {
-          fileId = session.fileId;
-          creator = session.creator;
-          isValid = false;
-          creationTime = session.creationTime;
-          expiryTime = session.expiryTime;
-        };
-        qrCodeSessions.add(qrId, updatedSession);
-      };
-      case (null) { Runtime.trap("QR code not found") };
-    };
-  };
-
-  public query ({ caller }) func getQRCodeSession(qrId : Text) : async QRCodeSession {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can access QR code sessions");
-    };
-
-    switch (qrCodeSessions.get(qrId)) {
-      case (?session) {
-        // Only the creator or an admin can view the full session details
-        if (session.creator != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: Only the QR code creator can view session details");
-        };
-        session;
-      };
-      case (null) { Runtime.trap("QR code not found") };
-    };
-  };
-
-  public shared ({ caller }) func fetchFileMetadataByQRCode(qrId : Text) : async ?FileMetadata {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can fetch file metadata by QR code");
-    };
-
-    switch (qrCodeSessions.get(qrId)) {
-      case (?session) {
-        // Verify the QR code session is valid and not expired
-        if (not session.isValid) {
-          Runtime.trap("Unauthorized: QR code session is invalid");
-        };
-
-        if (Time.now() > session.expiryTime) {
-          Runtime.trap("Unauthorized: QR code session has expired");
-        };
-
-        // Return the file metadata if all checks pass
-        fileMetadata.get(session.fileId);
-      };
-      case (null) { 
-        Runtime.trap("Unauthorized: QR code not found");
-      };
-    };
   };
 };

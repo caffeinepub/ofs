@@ -14,14 +14,15 @@ export default function ProfileSetup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!displayName.trim()) {
+    const trimmedName = displayName.trim();
+    if (!trimmedName) {
       toast.error('Please enter your name');
       return;
     }
 
     try {
       await saveProfile.mutateAsync({
-        displayName: displayName.trim(),
+        displayName: trimmedName,
         avatarUrl: '',
         online: true,
       });
@@ -40,7 +41,7 @@ export default function ProfileSetup() {
             <img src="/assets/generated/ofs-logo-transparent.dim_200x200.png" alt="OFS Logo" className="h-12 w-12" />
           </div>
           <CardTitle className="text-2xl font-bold">Complete Your Profile</CardTitle>
-          <CardDescription>Let's get you set up to start sharing files</CardDescription>
+          <CardDescription>Enter your name to start sharing files</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

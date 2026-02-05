@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { UserProfile, TransferRecord, FileMetadata, AIProcessingResult, Variant_imageCompression_fileRecognition, QRCodeSession } from '../backend';
+import type { UserProfile, TransferRecordData, FileMetadata, AIProcessingResult, Variant_imageCompression_fileRecognition } from '../backend';
 import { ExternalBlob } from '../backend';
 import type { Principal } from '@icp-sdk/core/principal';
 
@@ -108,6 +108,39 @@ export function useGetUserProfile(userPrincipal: Principal | null) {
   });
 }
 
+export function useGetMultipleUserProfiles(principals: Principal[]) {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<Record<string, UserProfile | null>>({
+    queryKey: ['multipleUserProfiles', principals.map(p => p.toString()).sort().join(',')],
+    queryFn: async () => {
+      if (!actor || principals.length === 0) return {};
+      
+      const profilePromises = principals.map(async (principal) => {
+        try {
+          const profile = await actor.getUserProfile(principal);
+          return { principal: principal.toString(), profile };
+        } catch (error) {
+          console.error(`Failed to fetch profile for ${principal.toString()}:`, error);
+          return { principal: principal.toString(), profile: null };
+        }
+      });
+
+      const results = await Promise.all(profilePromises);
+      
+      const profileMap: Record<string, UserProfile | null> = {};
+      results.forEach(({ principal, profile }) => {
+        profileMap[principal] = profile;
+      });
+      
+      return profileMap;
+    },
+    enabled: !!actor && !!identity && !isFetching && principals.length > 0,
+    retry: false,
+  });
+}
+
 // File Operations
 export function useUploadFile() {
   const { actor } = useActor();
@@ -187,13 +220,14 @@ export function useGetTransferHistory(userPrincipal: Principal | null) {
   const { actor, isFetching } = useActor();
   const { identity } = useInternetIdentity();
 
-  return useQuery<TransferRecord[]>({
+  return useQuery<TransferRecordData[]>({
     queryKey: ['transferHistory', userPrincipal?.toString()],
     queryFn: async () => {
       if (!actor || !userPrincipal) return [];
       return actor.getTransferHistory(userPrincipal);
     },
     enabled: !!actor && !!identity && !isFetching && !!userPrincipal,
+    refetchInterval: (query) => (query.state.data && identity ? 5000 : false),
     retry: false,
   });
 }
@@ -269,69 +303,5 @@ export function useGetAllAIProcessingResults() {
     },
     enabled: !!actor && !!identity && !isFetching,
     retry: false,
-  });
-}
-
-// QR Code Operations
-export function useCreateQRCodeSession() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useMutation({
-    mutationFn: async ({ fileId, expiryDuration }: { fileId: string; expiryDuration: bigint }) => {
-      if (!actor || !identity) throw new Error('Authentication required');
-      return actor.createQRCodeSession(fileId, expiryDuration);
-    },
-  });
-}
-
-export function useValidateQRCodeSession() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useMutation({
-    mutationFn: async (qrId: string) => {
-      if (!actor || !identity) throw new Error('Authentication required');
-      return actor.validateQRCodeSession(qrId);
-    },
-  });
-}
-
-export function useInvalidateQRCodeSession() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useMutation({
-    mutationFn: async (qrId: string) => {
-      if (!actor || !identity) throw new Error('Authentication required');
-      return actor.invalidateQRCodeSession(qrId);
-    },
-  });
-}
-
-export function useGetQRCodeSession(qrId: string | null) {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<QRCodeSession | null>({
-    queryKey: ['qrCodeSession', qrId],
-    queryFn: async () => {
-      if (!actor || !qrId) return null;
-      return actor.getQRCodeSession(qrId);
-    },
-    enabled: !!actor && !!identity && !isFetching && !!qrId,
-    retry: false,
-  });
-}
-
-export function useFetchFileMetadataByQRCode() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useMutation({
-    mutationFn: async (qrId: string) => {
-      if (!actor || !identity) throw new Error('Authentication required');
-      return actor.fetchFileMetadataByQRCode(qrId);
-    },
   });
 }

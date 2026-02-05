@@ -1,136 +1,27 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T10:03:32.233Z",
+  "generatedAt": "2026-02-05T12:59:26.528Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
-    "items": [
-      {
-        "id": "REQ-1",
-        "summary": "Remove the mandatory Internet Identity login gate so the app can open directly in a usable \"Offline (no login)\" mode, without showing the LoginScreen by default.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/OfflineDashboard.tsx",
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/OfflineDashboard.tsx",
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Prevent backend-authenticated React Query hooks from running when the user is not authenticated, so anonymous/guest usage does not trigger backend authorization traps (e.g., getCallerUserProfile, getOnlineUsers, uploadFile, QR session calls).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Dashboard.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/FileTransfer.tsx",
-          "frontend/src/components/QRCodeDialog.tsx",
-          "frontend/src/components/QRScannerModal.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/Dashboard.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/FileTransfer.tsx",
-          "frontend/src/components/QRCodeDialog.tsx",
-          "frontend/src/components/QRScannerModal.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Implement offline file sharing that works with zero network connectivity between sender and receiver by adding an \"Offline Share Package\" workflow: sender exports a self-contained share file (e.g., a single .html file) that embeds the selected file bytes and minimal metadata; receiver opens the share file locally (no network) and can save the embedded file to their device.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/offlineSharePackage.ts",
-          "frontend/src/components/OfflineFileShare.tsx",
-          "frontend/src/pages/OfflineDashboard.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/offlineSharePackage.ts",
-          "frontend/src/components/OfflineFileShare.tsx",
-          "frontend/src/pages/OfflineDashboard.tsx",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add a receiver-side \"Save to device\" action for any received file in offline mode, using the File System Access API when available (showSaveFilePicker) and falling back to a normal browser download when not available.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/saveToDevice.ts",
-          "frontend/src/components/OfflineFileShare.tsx",
-          "frontend/src/utils/offlineSharePackage.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/saveToDevice.ts",
-          "frontend/src/components/OfflineFileShare.tsx",
-          "frontend/src/utils/offlineSharePackage.ts"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Make the app offline-capable after first load by caching the app shell and static assets for offline use (PWA-style), so users can reopen the app without network connectivity.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/public/manifest.webmanifest",
-          "frontend/public/sw.js",
-          "frontend/src/pwa/registerServiceWorker.ts",
-          "frontend/src/App.tsx",
-          "frontend/index.html",
-          "frontend/src/utils/useOnlineStatus.ts",
-          "frontend/src/pages/Dashboard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/public/manifest.webmanifest",
-          "frontend/public/sw.js",
-          "frontend/src/pwa/registerServiceWorker.ts",
-          "frontend/src/App.tsx",
-          "frontend/index.html",
-          "frontend/src/utils/useOnlineStatus.ts",
-          "frontend/src/pages/Dashboard.tsx"
-        ]
-      }
-    ]
+    "total": 0,
+    "implemented": 0,
+    "items": []
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
-    "build-template/Dockerfile",
-    "build-template/LICENSE",
-    "build-template/README.md",
-    "build-template/deploy.sh",
-    "build-template/icp.yaml",
-    "build-template/src/backend/canister.yaml",
-    "build-template/src/frontend/canister.yaml",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
-    "frontend/public/manifest.webmanifest",
-    "frontend/public/sw.js",
-    "frontend/src/App.tsx",
-    "frontend/src/components/FileTransfer.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/OfflineFileShare.tsx",
-    "frontend/src/components/QRCodeDialog.tsx",
-    "frontend/src/components/QRScannerModal.tsx",
-    "frontend/src/hooks/useInternetIdentity.ts",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/components/DashboardSentTab.tsx",
+    "frontend/src/components/SentDownloadsList.tsx",
+    "frontend/src/components/SettingsDialog.tsx",
     "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/pages/OfflineDashboard.tsx",
-    "frontend/src/pwa/registerServiceWorker.ts",
-    "frontend/src/utils/offlineSharePackage.ts",
-    "frontend/src/utils/saveToDevice.ts",
-    "frontend/src/utils/useOnlineStatus.ts",
+    "frontend/src/utils/receivedDownloads.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

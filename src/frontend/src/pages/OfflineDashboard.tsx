@@ -1,14 +1,32 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Info, ArrowLeft } from 'lucide-react';
 import OfflineFileShare from '../components/OfflineFileShare';
+import { BRANDING } from '../constants/branding';
 
-export default function OfflineDashboard() {
+interface OfflineDashboardProps {
+  onBackToLogin?: () => void;
+}
+
+export default function OfflineDashboard({ onBackToLogin }: OfflineDashboardProps) {
   return (
     <div className="container py-8">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Offline File Sharing</h2>
-        <p className="text-muted-foreground">Share files without internet connection</p>
+      {onBackToLogin && (
+        <div className="mb-6">
+          <Button onClick={onBackToLogin} variant="ghost" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Login
+          </Button>
+        </div>
+      )}
+
+      <div className="mb-8 flex items-center gap-3">
+        <img src="/assets/generated/ofs-logo-transparent.dim_200x200.png" alt="OFS Logo" className="h-12 w-12" />
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">{BRANDING.appNameWithAcronym}</h2>
+          <p className="text-muted-foreground">{BRANDING.tagline}</p>
+        </div>
       </div>
 
       <div className="space-y-6">

@@ -26,15 +26,6 @@ export const UserRole = IDL.Variant({
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const Time = IDL.Int;
-export const FileMetadata = IDL.Record({
-  'id' : IDL.Text,
-  'blob' : ExternalBlob,
-  'name' : IDL.Text,
-  'size' : IDL.Nat,
-  'fileType' : IDL.Text,
-  'uploader' : IDL.Principal,
-  'uploadTime' : Time,
-});
 export const AIProcessingResult = IDL.Record({
   'id' : IDL.Text,
   'owner' : IDL.Opt(IDL.Principal),
@@ -51,14 +42,16 @@ export const UserProfile = IDL.Record({
   'avatarUrl' : IDL.Text,
   'online' : IDL.Bool,
 });
-export const QRCodeSession = IDL.Record({
-  'creator' : IDL.Principal,
-  'expiryTime' : Time,
-  'creationTime' : Time,
-  'fileId' : IDL.Text,
-  'isValid' : IDL.Bool,
+export const FileMetadata = IDL.Record({
+  'id' : IDL.Text,
+  'blob' : ExternalBlob,
+  'name' : IDL.Text,
+  'size' : IDL.Nat,
+  'fileType' : IDL.Text,
+  'uploader' : IDL.Principal,
+  'uploadTime' : Time,
 });
-export const TransferRecord = IDL.Record({
+export const TransferRecordData = IDL.Record({
   'id' : IDL.Text,
   'transferTime' : Time,
   'file' : FileMetadata,
@@ -102,12 +95,6 @@ export const idlService = IDL.Service({
       [ExternalBlob],
       [],
     ),
-  'createQRCodeSession' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Text], []),
-  'fetchFileMetadataByQRCode' : IDL.Func(
-      [IDL.Text],
-      [IDL.Opt(FileMetadata)],
-      [],
-    ),
   'getAIProcessingResult' : IDL.Func(
       [IDL.Text],
       [AIProcessingResult],
@@ -122,10 +109,9 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getFileMetadata' : IDL.Func([IDL.Text], [FileMetadata], ['query']),
   'getOnlineUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
-  'getQRCodeSession' : IDL.Func([IDL.Text], [QRCodeSession], ['query']),
   'getTransferHistory' : IDL.Func(
       [IDL.Principal],
-      [IDL.Vec(TransferRecord)],
+      [IDL.Vec(TransferRecordData)],
       ['query'],
     ),
   'getUserProfile' : IDL.Func(
@@ -133,7 +119,6 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
-  'invalidateQRCodeSession' : IDL.Func([IDL.Text], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'recordAIProcessing' : IDL.Func(
       [
@@ -161,7 +146,6 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
-  'validateQRCodeSession' : IDL.Func([IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -185,15 +169,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const Time = IDL.Int;
-  const FileMetadata = IDL.Record({
-    'id' : IDL.Text,
-    'blob' : ExternalBlob,
-    'name' : IDL.Text,
-    'size' : IDL.Nat,
-    'fileType' : IDL.Text,
-    'uploader' : IDL.Principal,
-    'uploadTime' : Time,
-  });
   const AIProcessingResult = IDL.Record({
     'id' : IDL.Text,
     'owner' : IDL.Opt(IDL.Principal),
@@ -210,14 +185,16 @@ export const idlFactory = ({ IDL }) => {
     'avatarUrl' : IDL.Text,
     'online' : IDL.Bool,
   });
-  const QRCodeSession = IDL.Record({
-    'creator' : IDL.Principal,
-    'expiryTime' : Time,
-    'creationTime' : Time,
-    'fileId' : IDL.Text,
-    'isValid' : IDL.Bool,
+  const FileMetadata = IDL.Record({
+    'id' : IDL.Text,
+    'blob' : ExternalBlob,
+    'name' : IDL.Text,
+    'size' : IDL.Nat,
+    'fileType' : IDL.Text,
+    'uploader' : IDL.Principal,
+    'uploadTime' : Time,
   });
-  const TransferRecord = IDL.Record({
+  const TransferRecordData = IDL.Record({
     'id' : IDL.Text,
     'transferTime' : Time,
     'file' : FileMetadata,
@@ -261,12 +238,6 @@ export const idlFactory = ({ IDL }) => {
         [ExternalBlob],
         [],
       ),
-    'createQRCodeSession' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Text], []),
-    'fetchFileMetadataByQRCode' : IDL.Func(
-        [IDL.Text],
-        [IDL.Opt(FileMetadata)],
-        [],
-      ),
     'getAIProcessingResult' : IDL.Func(
         [IDL.Text],
         [AIProcessingResult],
@@ -281,10 +252,9 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getFileMetadata' : IDL.Func([IDL.Text], [FileMetadata], ['query']),
     'getOnlineUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
-    'getQRCodeSession' : IDL.Func([IDL.Text], [QRCodeSession], ['query']),
     'getTransferHistory' : IDL.Func(
         [IDL.Principal],
-        [IDL.Vec(TransferRecord)],
+        [IDL.Vec(TransferRecordData)],
         ['query'],
       ),
     'getUserProfile' : IDL.Func(
@@ -292,7 +262,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
-    'invalidateQRCodeSession' : IDL.Func([IDL.Text], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'recordAIProcessing' : IDL.Func(
         [
@@ -327,7 +296,6 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
-    'validateQRCodeSession' : IDL.Func([IDL.Text], [IDL.Bool], []),
   });
 };
 

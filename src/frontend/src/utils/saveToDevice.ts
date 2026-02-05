@@ -29,18 +29,25 @@ export async function saveToDevice(
       if (err.name === 'AbortError') {
         throw new Error('Save cancelled');
       }
-      // Fall through to traditional download
-      console.log('File System Access API failed, falling back to download');
+      // Fall through to traditional download on other errors
+      console.log('File System Access API failed, falling back to download:', err.message);
     }
   }
 
   // Fallback to traditional download
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the object URL after a short delay
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  } catch (err: any) {
+    console.error('Download fallback failed:', err);
+    throw new Error('Failed to save file to device');
+  }
 }

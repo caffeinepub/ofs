@@ -1,5 +1,5 @@
 {
-  "name": "OFS - Offline File Sharing",
+  "name": "Offline File Sharing",
   "short_name": "OFS",
   "description": "Share files offline without internet connection",
   "start_url": "/",

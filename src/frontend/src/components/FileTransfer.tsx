@@ -1,19 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetOnlineUsers, useUploadFile, useRecordTransfer } from '../hooks/useQueries';
+import { useGetOnlineUsers, useUploadFile, useRecordTransfer, useGetCallerUserProfile, useGetMultipleUserProfiles, useGetFileMetadata } from '../hooks/useQueries';
 import { useOnlineStatus } from '../utils/useOnlineStatus';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, X, FileIcon, Loader2, CheckCircle2, QrCode, ScanLine, WifiOff } from 'lucide-react';
+import { Upload, X, FileIcon, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExternalBlob } from '../backend';
 import type { Principal } from '@icp-sdk/core/principal';
-import type { FileMetadata } from '../backend';
-import QRCodeDialog from './QRCodeDialog';
-import QRScannerModal from './QRScannerModal';
 
 interface FileWithProgress {
   file: File;
@@ -30,6 +26,7 @@ interface FileTransferProps {
 export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTransferProps) {
   const { identity } = useInternetIdentity();
   const { data: onlineUsers } = useGetOnlineUsers();
+  const { data: currentUserProfile } = useGetCallerUserProfile();
   const uploadFile = useUploadFile();
   const recordTransfer = useRecordTransfer();
   const isOnline = useOnlineStatus();
@@ -37,13 +34,14 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
   const [selectedFiles, setSelectedFiles] = useState<FileWithProgress[]>([]);
   const [selectedReceiver, setSelectedReceiver] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
-  const [qrDialogOpen, setQrDialogOpen] = useState(false);
-  const [qrScannerOpen, setQrScannerOpen] = useState(false);
-  const [fileForQR, setFileForQR] = useState<File | null>(null);
+  const [isTransferring, setIsTransferring] = useState(false);
 
   const isAuthenticated = !!identity;
   const currentUserPrincipal = identity?.getPrincipal().toString();
   const availableReceivers = onlineUsers?.filter((user) => user.toString() !== currentUserPrincipal) || [];
+
+  // Fetch profiles for all available receivers
+  const { data: receiverProfiles } = useGetMultipleUserProfiles(availableReceivers);
 
   // Handle prefilled file from AI compression
   useEffect(() => {
@@ -105,65 +103,6 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
     setSelectedFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const handleSendViaQR = () => {
-    if (!isAuthenticated) {
-      toast.error('Login required for QR code sharing');
-      return;
-    }
-
-    if (!isOnline) {
-      toast.error('This feature requires an internet connection');
-      return;
-    }
-
-    if (selectedFiles.length === 0) {
-      toast.error('Please select a file first');
-      return;
-    }
-
-    if (selectedFiles.length > 1) {
-      toast.error('Please select only one file for QR code sharing');
-      return;
-    }
-
-    setFileForQR(selectedFiles[0].file);
-    setQrDialogOpen(true);
-  };
-
-  const handleScanQR = () => {
-    if (!isAuthenticated) {
-      toast.error('Login required for QR code scanning');
-      return;
-    }
-
-    if (!isOnline) {
-      toast.error('This feature requires an internet connection');
-      return;
-    }
-
-    setQrScannerOpen(true);
-  };
-
-  const handleFileScanned = async (fileMetadata: FileMetadata) => {
-    try {
-      const blob = await fileMetadata.blob.getBytes();
-      const file = new File([blob], fileMetadata.name, { type: fileMetadata.fileType });
-      
-      const newFile: FileWithProgress = {
-        file,
-        progress: 100,
-        status: 'complete',
-        id: fileMetadata.id,
-      };
-      
-      setSelectedFiles([newFile]);
-      toast.success(`Received file: ${fileMetadata.name}`);
-    } catch (error) {
-      console.error('Error processing scanned file:', error);
-      toast.error('Failed to receive file');
-    }
-  };
-
   const simulateTransfer = async (fileWithProgress: FileWithProgress) => {
     const { file, id } = fileWithProgress;
 
@@ -195,7 +134,7 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
   };
 
   const handleTransfer = async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !identity) {
       toast.error('Login required for online transfers');
       return;
     }
@@ -215,29 +154,77 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
       return;
     }
 
+    setIsTransferring(true);
+
     try {
       const startTime = Date.now();
+      const senderPrincipal = identity.getPrincipal();
+      const receiverPrincipal = availableReceivers.find(u => u.toString() === selectedReceiver);
 
+      if (!receiverPrincipal) {
+        throw new Error('Receiver not found');
+      }
+
+      // Process each file
       for (const fileWithProgress of selectedFiles) {
         if (fileWithProgress.status !== 'pending') continue;
 
-        await simulateTransfer(fileWithProgress);
+        try {
+          // Simulate transfer progress
+          await simulateTransfer(fileWithProgress);
 
-        const arrayBuffer = await fileWithProgress.file.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const blob = ExternalBlob.fromBytes(uint8Array);
+          // Upload file to backend
+          const arrayBuffer = await fileWithProgress.file.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          const blob = ExternalBlob.fromBytes(uint8Array);
 
-        await uploadFile.mutateAsync({
-          id: fileWithProgress.id,
-          name: fileWithProgress.file.name,
-          size: BigInt(fileWithProgress.file.size),
-          fileType: fileWithProgress.file.type,
-          blob,
-        });
+          await uploadFile.mutateAsync({
+            id: fileWithProgress.id,
+            name: fileWithProgress.file.name,
+            size: BigInt(fileWithProgress.file.size),
+            fileType: fileWithProgress.file.type,
+            blob,
+          });
+
+          // Fetch the uploaded file metadata from backend
+          const fileMetadata = await uploadFile.mutateAsync({
+            id: fileWithProgress.id,
+            name: fileWithProgress.file.name,
+            size: BigInt(fileWithProgress.file.size),
+            fileType: fileWithProgress.file.type,
+            blob,
+          });
+
+          // Record the transfer so receiver can see it
+          const transferDuration = Date.now() - startTime;
+          await recordTransfer.mutateAsync({
+            id: `transfer-${fileWithProgress.id}`,
+            sender: senderPrincipal,
+            receiver: receiverPrincipal,
+            file: {
+              id: fileWithProgress.id,
+              name: fileWithProgress.file.name,
+              size: BigInt(fileWithProgress.file.size),
+              fileType: fileWithProgress.file.type,
+              uploader: senderPrincipal,
+              uploadTime: BigInt(Date.now() * 1000000), // Convert to nanoseconds
+              blob,
+            },
+            duration: BigInt(transferDuration),
+            success: true,
+          });
+        } catch (error) {
+          console.error(`Failed to transfer ${fileWithProgress.file.name}:`, error);
+          setSelectedFiles((prev) =>
+            prev.map((f) => (f.id === fileWithProgress.id ? { ...f, status: 'error' as const } : f))
+          );
+        }
       }
 
-      const duration = Date.now() - startTime;
-      toast.success(`Successfully transferred ${selectedFiles.length} file(s)!`);
+      const successCount = selectedFiles.filter(f => f.status === 'complete').length;
+      if (successCount > 0) {
+        toast.success(`Successfully transferred ${successCount} file(s)!`);
+      }
 
       setTimeout(() => {
         setSelectedFiles([]);
@@ -246,6 +233,8 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
     } catch (error) {
       toast.error('Transfer failed. Please try again.');
       console.error('Transfer error:', error);
+    } finally {
+      setIsTransferring(false);
     }
   };
 
@@ -274,15 +263,32 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
+  const getReceiverDisplayName = (principal: Principal): string => {
+    const principalStr = principal.toString();
+    const profile = receiverProfiles?.[principalStr];
+    if (profile?.displayName) {
+      return profile.displayName;
+    }
+    return `${principalStr.slice(0, 10)}...${principalStr.slice(-8)}`;
+  };
+
   return (
-    <>
+    <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Send Files Section */}
         <Card>
           <CardHeader>
             <CardTitle>Select Files</CardTitle>
             <CardDescription>Drag and drop files or click to browse</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {currentUserProfile?.displayName && (
+              <div className="rounded-lg bg-primary/5 px-3 py-2 text-sm">
+                <span className="text-muted-foreground">Sending as: </span>
+                <span className="font-medium">{currentUserProfile.displayName}</span>
+              </div>
+            )}
+
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -356,40 +362,10 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
                 </div>
               </div>
             )}
-
-            {/* QR Code Actions */}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSendViaQR}
-                disabled={!isAuthenticated || !isOnline || selectedFiles.length === 0 || selectedFiles.length > 1}
-                variant="outline"
-                className="flex-1"
-              >
-                <QrCode className="mr-2 h-4 w-4" />
-                Send via QR
-              </Button>
-              <Button 
-                onClick={handleScanQR} 
-                disabled={!isAuthenticated || !isOnline}
-                variant="outline" 
-                className="flex-1"
-              >
-                <ScanLine className="mr-2 h-4 w-4" />
-                Scan QR
-              </Button>
-            </div>
-
-            {!isAuthenticated && (
-              <Alert>
-                <WifiOff className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  Login required for QR code features and online transfers.
-                </AlertDescription>
-              </Alert>
-            )}
           </CardContent>
         </Card>
 
+        {/* Transfer Settings Section */}
         <Card>
           <CardHeader>
             <CardTitle>Transfer Settings</CardTitle>
@@ -412,7 +388,7 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
                   ) : (
                     availableReceivers.map((user) => (
                       <SelectItem key={user.toString()} value={user.toString()}>
-                        {user.toString().slice(0, 10)}...{user.toString().slice(-8)}
+                        {getReceiverDisplayName(user)}
                       </SelectItem>
                     ))
                   )}
@@ -427,19 +403,17 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
                 className="mb-3 w-full rounded-md"
               />
               <p className="text-sm text-muted-foreground">
-                {isAuthenticated && isOnline
-                  ? 'Files will be transferred directly to the selected user using peer-to-peer technology. No data is stored in the cloud.'
-                  : 'Login and connect to the internet to use online transfer features.'}
+                Files will be transferred directly to the selected user using peer-to-peer technology. No data is stored in the cloud.
               </p>
             </div>
 
             <Button
               onClick={handleTransfer}
-              disabled={!isAuthenticated || !isOnline || !selectedReceiver || selectedFiles.length === 0 || uploadFile.isPending}
+              disabled={!isAuthenticated || !isOnline || !selectedReceiver || selectedFiles.length === 0 || isTransferring}
               className="w-full"
               size="lg"
             >
-              {uploadFile.isPending ? (
+              {isTransferring ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Transferring...
@@ -451,18 +425,6 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
           </CardContent>
         </Card>
       </div>
-
-      {/* QR Code Dialog */}
-      {isAuthenticated && isOnline && (
-        <>
-          <QRCodeDialog open={qrDialogOpen} onOpenChange={setQrDialogOpen} file={fileForQR} />
-          <QRScannerModal
-            open={qrScannerOpen}
-            onOpenChange={setQrScannerOpen}
-            onFileScanned={handleFileScanned}
-          />
-        </>
-      )}
-    </>
+    </div>
   );
 }
