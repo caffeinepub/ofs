@@ -1,0 +1,38 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-05T10:03:32.187Z",
+  "summary": "Most requested offline-first guest mode functionality appears implemented: unauthenticated users land on an OfflineDashboard, backend React Query hooks are guarded by identity, offline share packages (self-contained HTML) can be exported/imported, received files can be saved via File System Access API with download fallback, and a service worker + manifest enable offline app-shell caching with clear offline messaging for online-only features. However, the diff shows a modification to a file explicitly constrained as 'do not edit' (useInternetIdentity.ts).",
+  "missing_requirements": [],
+  "hallucinated_features": [
+    {
+      "description": "Modified a file that the BuildRequest constraints explicitly forbade editing (useInternetIdentity.ts).",
+      "reason": "The BuildRequest included a constraint to not edit frontend/src/hooks/useInternetIdentity.ts, but it appears under MODIFIED FILES in the diff.",
+      "evidence": [
+        "frontend/src/hooks/useInternetIdentity.ts"
+      ]
+    }
+  ],
+  "confidence": 0.72,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/index.html",
+    "frontend/public/manifest.webmanifest",
+    "frontend/public/sw.js",
+    "frontend/src/App.tsx",
+    "frontend/src/components/FileTransfer.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/OfflineFileShare.tsx",
+    "frontend/src/components/QRCodeDialog.tsx",
+    "frontend/src/components/QRScannerModal.tsx",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/pages/OfflineDashboard.tsx",
+    "frontend/src/pwa/registerServiceWorker.ts",
+    "frontend/src/utils/offlineSharePackage.ts",
+    "frontend/src/utils/saveToDevice.ts",
+    "frontend/src/utils/useOnlineStatus.ts",
+    "project_state.json"
+  ]
+}

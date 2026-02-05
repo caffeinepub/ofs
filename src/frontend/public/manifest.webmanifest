@@ -1,0 +1,18 @@
+{
+  "name": "OFS - Offline File Sharing",
+  "short_name": "OFS",
+  "description": "Share files offline without internet connection",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/generated/ofs-logo-transparent.dim_200x200.png",
+      "sizes": "200x200",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

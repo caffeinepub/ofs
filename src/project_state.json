@@ -1,0 +1,284 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "OFS is a file sharing web app currently built on the Internet Computer with Internet Identity auth and a canister-backed storage/metadata model. The user now wants a major direction change toward a fully offline-capable experience: no login screen (open directly), link-based sharing that works without any network/Wi‑Fi, and transfers that save directly into the receiver’s device storage.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Internet Identity authentication provider",
+      "synonyms": [
+        "II login",
+        "AuthClient integration"
+      ],
+      "description": "Provides login/logout and identity persistence via @dfinity/auth-client, loading stored identity on app startup and exposing authentication state through a React Context (InternetIdentityProvider).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Canister actor creation and cache invalidation on identity change",
+      "synonyms": [
+        "useActor",
+        "actor lifecycle"
+      ],
+      "description": "Creates an anonymous or authenticated canister actor depending on identity; when identity changes it invalidates and refetches non-actor React Query caches to keep data consistent per-user.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Role-based access control with admin-token bootstrap",
+      "synonyms": [
+        "AccessControl",
+        "admin/user/guest roles"
+      ],
+      "description": "Motoko access control assigns roles per principal; admin assignment is gated by an env-provided token and a user-provided secret. Includes APIs to get caller role, check admin status, and assign roles (admin-only).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "User profile management",
+      "synonyms": [
+        "Profile setup",
+        "display name + avatar"
+      ],
+      "description": "Users can create, fetch, and update their profile (displayName, avatarUrl, online flag). The UI includes a first-login ProfileSetup flow and a header account dropdown displaying the profile.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "Online presence and online user listing",
+      "synonyms": [
+        "Presence",
+        "online status"
+      ],
+      "description": "Backend stores and exposes online status per user; frontend sets online on dashboard mount/unmount and polls online users every 10 seconds, displaying a list of available online users.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "File upload and metadata storage",
+      "synonyms": [
+        "uploadFile",
+        "file registry"
+      ],
+      "description": "Uploads file blobs to the backend and stores file metadata (id, name, size, type, uploader, uploadTime, blob). Includes a query to retrieve metadata with authorization checks (uploader/admin).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Transfer history recording and retrieval APIs",
+      "synonyms": [
+        "recordTransfer",
+        "getTransferHistory"
+      ],
+      "description": "Backend supports recording transfer records (sender, receiver, file metadata, duration, success) and querying a user’s transfer history with authorization checks and time sorting. Frontend provides a TransferHistory UI to display records.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-8",
+      "title": "File transfer dashboard UI",
+      "synonyms": [
+        "Dashboard tabs",
+        "FileTransfer component"
+      ],
+      "description": "Tabbed dashboard with Transfer, History, Users, and AI Features. FileTransfer supports drag-and-drop multi-file selection, receiver selection from online users, per-file progress UI, and uploading selected files to the backend.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-9",
+      "title": "AI features: client-side image compression workflow",
+      "synonyms": [
+        "AI compression",
+        "canvas compression"
+      ],
+      "description": "Compresses images client-side via canvas/toBlob with adjustable quality, shows before/after sizes and a success dialog, and records processing results to the backend (including optional processed file blob).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-10",
+      "title": "AI features: client-side file recognition/analysis workflow",
+      "synonyms": [
+        "File recognition",
+        "metadata extraction"
+      ],
+      "description": "Analyzes selected files client-side (MIME/extension-based categorization) and records a recognition result payload to the backend as an AI processing record.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-11",
+      "title": "AI processing result storage and queries",
+      "synonyms": [
+        "AIProcessingResult",
+        "processing audit log"
+      ],
+      "description": "Backend stores AIProcessingResult records (owner, processedAt, type, metadata, optional blob) and supports querying individual results and listing all results for the caller (or admin). Frontend includes React Query hooks for these operations.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-12",
+      "title": "QR-code based file sharing sessions (backend)",
+      "synonyms": [
+        "QRCodeSession",
+        "QR share sessions"
+      ],
+      "description": "Backend supports creating QR sessions for a file with expiry, validating sessions, invalidating sessions (creator/admin), fetching session details (creator/admin), and fetching file metadata by QR session with validity/expiry enforcement.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-13",
+      "title": "QR code generation dialog (frontend)",
+      "synonyms": [
+        "Send via QR",
+        "QRCodeDialog"
+      ],
+      "description": "Uploads a selected file, creates a QR session with a 5-minute expiry, renders a QR-like image on a canvas for the session ID, displays countdown messaging, and allows downloading the generated image.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-14",
+      "title": "QR scanning via device camera (frontend)",
+      "synonyms": [
+        "Scan QR",
+        "QRScannerModal"
+      ],
+      "description": "Implements camera access via getUserMedia with start/stop/switch camera controls, dynamically loads jsQR for decoding, and upon scan calls the backend to fetch file metadata by QR ID, then passes the result to the transfer UI.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-15",
+      "title": "Caffeine blob-storage maintenance mixin (backend)",
+      "synonyms": [
+        "storage gateway authorization",
+        "dead blob pruning",
+        "cashier refill"
+      ],
+      "description": "Provides maintenance endpoints for updating authorized gateway principals, listing dead blobs to delete, confirming deletion and triggering GC, checking blob liveness, and refilling cycles via a configured cashier principal.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-16",
+      "title": "State migration to add QR session storage",
+      "synonyms": [
+        "migration.mo",
+        "schema evolution"
+      ],
+      "description": "Includes a migration runner that transforms an old actor state shape into a new shape by adding an empty qrCodeSessions map while preserving prior stored maps.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-17",
+      "title": "Theming and core UI shell",
+      "synonyms": [
+        "dark/light mode",
+        "Header/Footer"
+      ],
+      "description": "Provides a themed application shell using next-themes (system/light/dark), a header with theme toggle and account dropdown, and a footer with OFS branding; uses Tailwind configuration and shadcn-style UI components.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-mandatory-internet-identity-login-gate-so-the-app-can-open-directly-in-a-usable-offline-no-login-mode-without-showing-the-loginscreen-by-default",
+      "title": "Remove the mandatory Internet Identity login gate so the app can open directly in a usable \"Offline (no login)\" mode, without showing the LoginScreen by default.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-prevent-backend-authenticated-react-query-hooks-from-running-when-the-user-is-not-authenticated-so-anonymous-guest-usage-does-not-trigger-backend-authorization-traps-e-g-getcalleruserprofile-getonlineusers-uploadfile-qr-session-calls",
+      "title": "Prevent backend-authenticated React Query hooks from running when the user is not authenticated, so anonymous/guest usage does not trigger backend authorization traps (e.g., getCallerUserProfile, getOnlineUsers, uploadFile, QR session calls).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-offline-file-sharing-that-works-with-zero-network-connectivity-between-sender-and-receiver-by-adding-an-offline-share-package-workflow-sender-exports-a-self-contained-share-file-e-g-a-single-html-file-that-embeds-the-selected-file-bytes-and-minimal-metadata-receiver-opens-the-share-file-locally-no-network-and-can-save-the-embedded-file-to-their-device",
+      "title": "Implement offline file sharing that works with zero network connectivity between sender and receiver by adding an \"Offline Share Package\" workflow: sender exports a self-contained share file (e.g., a single .html file) that embeds the selected file bytes and minimal metadata; receiver opens the share file locally (no network) and can save the embedded file to their device.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-receiver-side-save-to-device-action-for-any-received-file-in-offline-mode-using-the-file-system-access-api-when-available-showsavefilepicker-and-falling-back-to-a-normal-browser-download-when-not-available",
+      "title": "Add a receiver-side \"Save to device\" action for any received file in offline mode, using the File System Access API when available (showSaveFilePicker) and falling back to a normal browser download when not available.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-app-offline-capable-after-first-load-by-caching-the-app-shell-and-static-assets-for-offline-use-pwa-style-so-users-can-reopen-the-app-without-network-connectivity",
+      "title": "Make the app offline-capable after first load by caching the app shell and static assets for offline use (PWA-style), so users can reopen the app without network connectivity.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Enable fully offline file sharing (no network/Wi‑Fi) including link-based sharing between users/devices",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Remove/disable Internet Identity login UI so the app opens directly without authentication",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure received files are written/saved to the receiver’s device storage (download/save-to-device flow)",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [
+    "Internet Identity integration wrapped in a React Context provider with persisted identity loading on startup and explicit login/logout handling.",
+    "Backend access is encapsulated via a generated canister actor; a custom useActor hook recreates the actor on identity changes and mass-invalidates/refetches dependent React Query caches.",
+    "TanStack React Query is used as the primary data-fetching/caching layer; mutations invalidate related query keys to keep UI consistent.",
+    "Motoko backend uses an explicit role-based access control module (admin/user/guest) and a mixin to expose authorization APIs; first admin assignment is gated by an env-provided token.",
+    "Motoko backend stores all application data in in-memory Map structures (profiles, files, transfers, AI results, QR sessions).",
+    "QR sharing is modeled as a session object with validity + expiry, stored server-side and enforced during fetch/validate/invalidate operations.",
+    "Frontend QR scanning is implemented with a camera hook (getUserMedia) + dynamically loaded jsQR script, providing mobile camera switching.",
+    "Backend includes a “Caffeine storage” mixin for blob lifecycle/GC and authorized gateway management, relying on external cashier/gateway principals via env vars.",
+    "A migration module exists to evolve stored state by adding qrCodeSessions to prior state shapes.",
+    "UI uses Tailwind + next-themes for light/dark theming and shadcn-style component primitives; toast notifications are provided via sonner."
+  ],
+  "known_issues": [
+    "Frontend calls useGetCallerUserProfile even when unauthenticated; when using an anonymous actor, backend authorization will trap and the query will error (should be disabled unless authenticated or backend should allow guest reads).",
+    "File transfer flow is largely simulated in the UI; handleTransfer uploads files but does not call recordTransfer, so backend transfer history may remain empty unless recorded elsewhere.",
+    "QRCodeDialog generates a non-standard “QR-like” pattern via canvas hashing rather than a real QR encoding; jsQR-based scanning will likely fail to decode these images reliably.",
+    "AI image compression is performed client-side; backend compressImage currently only records a result and returns the original blob (no real server-side compression).",
+    "useCompressImage internally generates an ID, while AIFeatures separately generates another ID for recordAIProcessing; this can create inconsistent/mismatched AI result records.",
+    "AIFeatures records metadata using React state (originalSize) that may not be updated synchronously, potentially recording incorrect original size values.",
+    "Backend stores full file blobs directly in canister memory and accepts them as single arguments; this will not scale to large files due to IC message/canister memory constraints (no chunking/streaming).",
+    "Environment variable name for the storage cashier principal appears misspelled as \"CAFFFEINE_STORAGE_CASHIER_PRINCIPAL\" (triple 'F'), which may cause deployment/configuration errors.",
+    "Two different global CSS files are present (frontend/index.css and frontend/src/index.css) with different token sets; this can cause styling/theme inconsistency depending on bundler config.",
+    "Online/offline presence is updated on mount/unmount only; abrupt tab closes or network loss may leave stale “online” state until the user reconnects or profile is updated."
+  ],
+  "isFixRequest": false,
+  "gameProjectType": "none",
+  "projectName": "OFS",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}
