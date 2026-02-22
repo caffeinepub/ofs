@@ -1,19 +1,17 @@
 import Map "mo:core/Map";
-import List "mo:core/List";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Array "mo:core/Array";
-import Iter "mo:core/Iter";
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
+import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Storage "blob-storage/Storage";
-
+import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
-import AccessControl "authorization/access-control";
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -112,7 +110,13 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  public shared ({ caller }) func uploadFile(id : Text, name : Text, size : Nat, fileType : Text, blob : Storage.ExternalBlob) : async () {
+  public shared ({ caller }) func uploadFile(
+    id : Text,
+    name : Text,
+    size : Nat,
+    fileType : Text,
+    blob : Storage.ExternalBlob,
+  ) : async () {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can upload files");
     };
@@ -198,16 +202,16 @@ actor {
       Runtime.trap("Unauthorized: Can only view your own transfer history");
     };
 
-    let userRecords = List.empty<TransferRecord>();
+    var userRecords : [TransferRecord] = [];
 
     for ((_, record) in transferRecords.entries()) {
       if (record.sender == user or record.receiver == user) {
-        userRecords.add(record);
+        userRecords := userRecords.concat([record]);
       };
     };
 
-    // Sort and convert to array
-    userRecords.toArray().sort(TransferRecord.compareByTime);
+    // Sort by time
+    userRecords.sort(TransferRecord.compareByTime);
   };
 
   public shared ({ caller }) func setOnlineStatus(online : Bool) : async () {
@@ -240,16 +244,20 @@ actor {
       Runtime.trap("Unauthorized: Only users can view online users");
     };
 
-    let onlineUsers = List.empty<Principal>();
+    var onlineUsers : [Principal] = [];
     for ((user, profile) in userProfiles.entries()) {
       if (profile.online) {
-        onlineUsers.add(user);
+        onlineUsers := onlineUsers.concat([user]);
       };
     };
-    onlineUsers.toArray();
+    onlineUsers;
   };
 
-  public shared ({ caller }) func compressImage(id : Text, image : Storage.ExternalBlob, quality : Nat) : async Storage.ExternalBlob {
+  public shared ({ caller }) func compressImage(
+    id : Text,
+    image : Storage.ExternalBlob,
+    quality : Nat,
+  ) : async Storage.ExternalBlob {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can compress images");
     };
@@ -329,7 +337,7 @@ actor {
       Runtime.trap("Unauthorized: Only users can access AI processing results");
     };
 
-    let userResults = List.empty<AIProcessingResult>();
+    var userResults : [AIProcessingResult] = [];
     for ((_, result) in aiProcessingResults.entries()) {
       let isOwner = switch (result.owner) {
         case (?owner) { owner == caller };
@@ -337,9 +345,9 @@ actor {
       };
 
       if (isOwner or AccessControl.isAdmin(accessControlState, caller)) {
-        userResults.add(result);
+        userResults := userResults.concat([result]);
       };
     };
-    userResults.toArray();
+    userResults;
   };
 };

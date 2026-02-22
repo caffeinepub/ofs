@@ -1,14 +1,10 @@
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Wifi, FileText } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { BRANDING } from '../constants/branding';
 
-interface LoginScreenProps {
-  onEnterOffline?: () => void;
-}
-
-export default function LoginScreen({ onEnterOffline }: LoginScreenProps) {
+export default function LoginScreen() {
   const { login, loginStatus } = useInternetIdentity();
 
   const isLoggingIn = loginStatus === 'logging-in';
@@ -28,27 +24,6 @@ export default function LoginScreen({ onEnterOffline }: LoginScreenProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-              <Wifi className="h-5 w-5 text-primary" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">Peer-to-Peer Transfer</p>
-                <p className="text-xs text-muted-foreground">No cloud dependency</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-              <img
-                src="/assets/generated/ai-compression-transparent.dim_64x64.png"
-                alt="AI Compression"
-                className="h-5 w-5"
-              />
-              <div className="flex-1">
-                <p className="text-sm font-medium">AI Image Compression</p>
-                <p className="text-xs text-muted-foreground">Reduce file sizes automatically</p>
-              </div>
-            </div>
-          </div>
-
           <Button onClick={login} disabled={isLoggingIn} className="w-full" size="lg">
             {isLoggingIn ? (
               <>
@@ -59,19 +34,6 @@ export default function LoginScreen({ onEnterOffline }: LoginScreenProps) {
               'Login to Get Started'
             )}
           </Button>
-
-          {onEnterOffline && (
-            <Button
-              onClick={onEnterOffline}
-              disabled={isLoggingIn}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Continue as Guest (Offline Mode)
-            </Button>
-          )}
 
           <p className="text-center text-xs text-muted-foreground">
             Secure authentication powered by Internet Identity

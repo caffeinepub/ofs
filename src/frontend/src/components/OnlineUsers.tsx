@@ -1,15 +1,26 @@
+import { useGetOnlineUsers, useGetMultipleUserProfiles } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetOnlineUsers, useGetUserProfile } from '../hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Wifi } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import SkeletonCard from './SkeletonCard';
+import EmptyState from './EmptyState';
 
-function UserCard({ userPrincipal }: { userPrincipal: string }) {
-  const { data: userProfile } = useGetUserProfile(
-    userPrincipal ? ({ toString: () => userPrincipal } as any) : null
-  );
+export default function OnlineUsers() {
+  const { identity } = useInternetIdentity();
+  const { data: onlineUsers, isLoading, refetch } = useGetOnlineUsers();
+  const currentUserPrincipal = identity?.getPrincipal().toString();
+  const availableUsers = onlineUsers?.filter((user) => user.toString() !== currentUserPrincipal) || [];
+  
+  const { data: userProfilesMap, isLoading: profilesLoading } = useGetMultipleUserProfiles(availableUsers);
+
+  const { isRefreshing, pullToRefreshProps } = usePullToRefresh({
+    onRefresh: async () => {
+      await refetch();
+    },
+  });
 
   const getInitials = (name: string) => {
     return name
@@ -21,81 +32,63 @@ function UserCard({ userPrincipal }: { userPrincipal: string }) {
   };
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50">
-      <Avatar className="h-12 w-12">
-        <AvatarImage src={userProfile?.avatarUrl} alt={userProfile?.displayName} />
-        <AvatarFallback>{userProfile?.displayName ? getInitials(userProfile.displayName) : 'U'}</AvatarFallback>
-      </Avatar>
-      <div className="flex-1">
-        <p className="font-medium">{userProfile?.displayName || 'Anonymous User'}</p>
-        <p className="text-xs text-muted-foreground">
-          {userPrincipal.slice(0, 10)}...{userPrincipal.slice(-8)}
-        </p>
-      </div>
-      <Badge variant="default" className="gap-1">
-        <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-        Online
-      </Badge>
-    </div>
-  );
-}
-
-export default function OnlineUsers() {
-  const { identity } = useInternetIdentity();
-  const { data: onlineUsers, isLoading } = useGetOnlineUsers();
-
-  const currentUserPrincipal = identity?.getPrincipal().toString();
-  const otherUsers = onlineUsers?.filter((user) => user.toString() !== currentUserPrincipal) || [];
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Online Users</CardTitle>
-          <CardDescription>Loading online users...</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Online Users</CardTitle>
-            <CardDescription>Users available for file sharing</CardDescription>
-          </div>
-          <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
-            <Wifi className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">{otherUsers.length} online</span>
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Online Users</h2>
+          <p className="text-sm text-muted-foreground">Users available for file sharing</p>
         </div>
-      </CardHeader>
-      <CardContent>
-        {otherUsers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="rounded-full bg-muted p-4">
-              <Users className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <p className="mt-4 font-medium">No other users online</p>
-            <p className="text-sm text-muted-foreground">Waiting for users to connect...</p>
-          </div>
+        {isRefreshing && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+      </div>
+
+      <div {...pullToRefreshProps} className="space-y-3 touch-pan-y">
+        {isLoading || profilesLoading ? (
+          <>
+            <SkeletonCard height="80px" />
+            <SkeletonCard height="80px" />
+            <SkeletonCard height="80px" />
+          </>
+        ) : availableUsers.length === 0 ? (
+          <EmptyState
+            imagePath="/assets/generated/empty-users.dim_300x200.png"
+            title="No users online"
+            description="Other users will appear here when they're online and available for file sharing."
+          />
         ) : (
-          <ScrollArea className="h-[500px] pr-4">
-            <div className="space-y-3">
-              {otherUsers.map((user) => (
-                <UserCard key={user.toString()} userPrincipal={user.toString()} />
-              ))}
-            </div>
-          </ScrollArea>
+          availableUsers.map((principal) => {
+            const profile = userProfilesMap?.[principal.toString()];
+            return (
+              <Card key={principal.toString()} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-14 w-14">
+                      <AvatarImage 
+                        src={profile?.avatarUrl} 
+                        alt={profile?.displayName}
+                        loading="lazy"
+                      />
+                      <AvatarFallback className="text-lg">
+                        {profile?.displayName ? getInitials(profile.displayName) : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">
+                        {profile?.displayName || principal.toString().slice(0, 12) + '...'}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          <span className="mr-1 h-2 w-2 rounded-full bg-green-500" />
+                          Online
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

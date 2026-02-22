@@ -59,85 +59,45 @@ export function useUpdateProfile() {
   });
 }
 
-// Online Status
-export function useSetOnlineStatus() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (online: boolean) => {
-      if (!actor || !identity) return;
-      return actor.setOnlineStatus(online);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['onlineUsers'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
-export function useGetOnlineUsers() {
+export function useGetUserProfile(user: Principal | null) {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<Principal[]>({
-    queryKey: ['onlineUsers'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getOnlineUsers();
-    },
-    enabled: !!actor && !!identity && !isFetching,
-    refetchInterval: (query) => (query.state.data ? 10000 : false),
-    retry: false,
-  });
-}
-
-export function useGetUserProfile(userPrincipal: Principal | null) {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   return useQuery<UserProfile | null>({
-    queryKey: ['userProfile', userPrincipal?.toString()],
+    queryKey: ['userProfile', user?.toString()],
     queryFn: async () => {
-      if (!actor || !userPrincipal) return null;
-      return actor.getUserProfile(userPrincipal);
+      if (!actor || !user) return null;
+      return actor.getUserProfile(user);
     },
-    enabled: !!actor && !!identity && !isFetching && !!userPrincipal,
-    retry: false,
+    enabled: !!actor && !!user && !isFetching,
   });
 }
 
-export function useGetMultipleUserProfiles(principals: Principal[]) {
+export function useGetMultipleUserProfiles(users: Principal[]) {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   return useQuery<Record<string, UserProfile | null>>({
-    queryKey: ['multipleUserProfiles', principals.map(p => p.toString()).sort().join(',')],
+    queryKey: ['userProfiles', users.map(u => u.toString()).sort()],
     queryFn: async () => {
-      if (!actor || principals.length === 0) return {};
+      if (!actor) return {};
       
-      const profilePromises = principals.map(async (principal) => {
-        try {
-          const profile = await actor.getUserProfile(principal);
-          return { principal: principal.toString(), profile };
-        } catch (error) {
-          console.error(`Failed to fetch profile for ${principal.toString()}:`, error);
-          return { principal: principal.toString(), profile: null };
-        }
-      });
+      const profiles = await Promise.all(
+        users.map(async (user) => {
+          try {
+            const profile = await actor.getUserProfile(user);
+            return { principal: user.toString(), profile };
+          } catch (error) {
+            console.error(`Failed to fetch profile for ${user.toString()}:`, error);
+            return { principal: user.toString(), profile: null };
+          }
+        })
+      );
 
-      const results = await Promise.all(profilePromises);
-      
-      const profileMap: Record<string, UserProfile | null> = {};
-      results.forEach(({ principal, profile }) => {
-        profileMap[principal] = profile;
-      });
-      
-      return profileMap;
+      return profiles.reduce((acc, { principal, profile }) => {
+        acc[principal] = profile;
+        return acc;
+      }, {} as Record<string, UserProfile | null>);
     },
-    enabled: !!actor && !!identity && !isFetching && principals.length > 0,
-    retry: false,
+    enabled: !!actor && users.length > 0 && !isFetching,
   });
 }
 
@@ -165,23 +125,21 @@ export function useUploadFile() {
       return actor.uploadFile(id, name, size, fileType, blob);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transferHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['files'] });
     },
   });
 }
 
 export function useGetFileMetadata(fileId: string | null) {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
-  return useQuery<FileMetadata | null>({
+  return useQuery<FileMetadata>({
     queryKey: ['fileMetadata', fileId],
     queryFn: async () => {
-      if (!actor || !fileId) return null;
+      if (!actor || !fileId) throw new Error('File ID required');
       return actor.getFileMetadata(fileId);
     },
-    enabled: !!actor && !!identity && !isFetching && !!fileId,
-    retry: false,
+    enabled: !!actor && !!fileId && !isFetching,
   });
 }
 
@@ -210,25 +168,88 @@ export function useRecordTransfer() {
       if (!actor || !identity) throw new Error('Authentication required');
       return actor.recordTransfer(id, sender, receiver, file, duration, success);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transferHistory'] });
+    onMutate: async (newTransfer) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['transferHistory'] });
+
+      // Snapshot previous value
+      const previousTransfers = queryClient.getQueryData(['transferHistory', newTransfer.sender.toString()]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['transferHistory', newTransfer.sender.toString()], (old: TransferRecordData[] | undefined) => {
+        const optimisticTransfer: TransferRecordData = {
+          id: newTransfer.id,
+          sender: newTransfer.sender,
+          receiver: newTransfer.receiver,
+          file: newTransfer.file,
+          transferTime: BigInt(Date.now()) * BigInt(1000000),
+          transferDuration: newTransfer.duration,
+          success: newTransfer.success,
+        };
+        return old ? [...old, optimisticTransfer] : [optimisticTransfer];
+      });
+
+      return { previousTransfers };
+    },
+    onError: (err, newTransfer, context) => {
+      // Rollback on error
+      if (context?.previousTransfers) {
+        queryClient.setQueryData(['transferHistory', newTransfer.sender.toString()], context.previousTransfers);
+      }
+    },
+    onSettled: (data, error, variables) => {
+      // Refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['transferHistory', variables.sender.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['transferHistory', variables.receiver.toString()] });
     },
   });
 }
 
-export function useGetTransferHistory(userPrincipal: Principal | null) {
+export function useGetTransferHistory(user: Principal | null) {
   const { actor, isFetching } = useActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<TransferRecordData[]>({
-    queryKey: ['transferHistory', userPrincipal?.toString()],
+    queryKey: ['transferHistory', user?.toString()],
     queryFn: async () => {
-      if (!actor || !userPrincipal) return [];
-      return actor.getTransferHistory(userPrincipal);
+      if (!actor || !user) return [];
+      return actor.getTransferHistory(user);
     },
-    enabled: !!actor && !!identity && !isFetching && !!userPrincipal,
-    refetchInterval: (query) => (query.state.data && identity ? 5000 : false),
-    retry: false,
+    enabled: !!actor && !!user && !!identity && !isFetching,
+    refetchInterval: 5000,
+  });
+}
+
+// Online Users
+export function useSetOnlineStatus() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (online: boolean) => {
+      if (!actor || !identity) throw new Error('Authentication required');
+      return actor.setOnlineStatus(online);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['onlineUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useGetOnlineUsers() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<Principal[]>({
+    queryKey: ['onlineUsers'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getOnlineUsers();
+    },
+    enabled: !!actor && !!identity && !isFetching,
+    refetchInterval: 5000,
   });
 }
 
@@ -239,13 +260,20 @@ export function useCompressImage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ image, quality }: { image: ExternalBlob; quality: bigint }) => {
+    mutationFn: async ({
+      id,
+      image,
+      quality,
+    }: {
+      id: string;
+      image: ExternalBlob;
+      quality: bigint;
+    }) => {
       if (!actor || !identity) throw new Error('Authentication required');
-      const id = `img-${Date.now()}`;
       return actor.compressImage(id, image, quality);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['aiProcessingResults'] });
+      queryClient.invalidateQueries({ queryKey: ['aiResults'] });
     },
   });
 }
@@ -271,23 +299,21 @@ export function useRecordAIProcessing() {
       return actor.recordAIProcessing(id, resultType, metadata, processedFile);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['aiProcessingResults'] });
+      queryClient.invalidateQueries({ queryKey: ['aiResults'] });
     },
   });
 }
 
 export function useGetAIProcessingResult(id: string | null) {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
-  return useQuery<AIProcessingResult | null>({
-    queryKey: ['aiProcessingResult', id],
+  return useQuery<AIProcessingResult>({
+    queryKey: ['aiResult', id],
     queryFn: async () => {
-      if (!actor || !id) return null;
+      if (!actor || !id) throw new Error('Result ID required');
       return actor.getAIProcessingResult(id);
     },
-    enabled: !!actor && !!identity && !isFetching && !!id,
-    retry: false,
+    enabled: !!actor && !!id && !isFetching,
   });
 }
 
@@ -296,12 +322,11 @@ export function useGetAllAIProcessingResults() {
   const { identity } = useInternetIdentity();
 
   return useQuery<AIProcessingResult[]>({
-    queryKey: ['aiProcessingResults'],
+    queryKey: ['aiResults'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllAIProcessingResults();
     },
     enabled: !!actor && !!identity && !isFetching,
-    retry: false,
   });
 }

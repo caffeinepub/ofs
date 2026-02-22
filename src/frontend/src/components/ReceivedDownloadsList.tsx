@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { downloadTransferFile } from '../utils/downloadTransferFile';
 import { isInstallablePackage, formatFileSize, formatTimestamp } from '../utils/receivedDownloads';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Download, Loader2, FileIcon, Package } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLongPress } from '../hooks/useLongPress';
+import FileContextMenu from './FileContextMenu';
 import type { TransferRecordData } from '../backend';
 
 interface ReceivedDownloadsListProps {
@@ -15,6 +16,7 @@ interface ReceivedDownloadsListProps {
 
 export default function ReceivedDownloadsList({ receivedFiles, maxHeight = '400px' }: ReceivedDownloadsListProps) {
   const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
+  const [contextMenuFile, setContextMenuFile] = useState<TransferRecordData | null>(null);
 
   const handleDownload = async (record: TransferRecordData) => {
     const { id, file } = record;
@@ -50,23 +52,19 @@ export default function ReceivedDownloadsList({ receivedFiles, maxHeight = '400p
     }
   };
 
-  if (receivedFiles.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="rounded-full bg-muted p-4 mb-4">
-          <Download className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-semibold mb-2">No downloads yet</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          Files you receive from other users will appear here for easy access.
-        </p>
-      </div>
-    );
-  }
+  const longPressHandlers = useLongPress({
+    onLongPress: (record: TransferRecordData) => {
+      setContextMenuFile(record);
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    },
+    delay: 500,
+  });
 
   return (
-    <ScrollArea className={`pr-4`} style={{ height: maxHeight }}>
-      <div className="space-y-3">
+    <>
+      <div className="space-y-3 touch-pan-y" style={{ maxHeight, overflowY: 'auto' }}>
         {receivedFiles.map((record, index) => {
           const { id, file, transferTime } = record;
           const isDownloading = downloadingIds.has(id);
@@ -75,7 +73,10 @@ export default function ReceivedDownloadsList({ receivedFiles, maxHeight = '400p
           return (
             <div key={id}>
               {index > 0 && <Separator className="my-3" />}
-              <div className="flex items-start gap-3">
+              <div
+                className="flex items-start gap-3 active:bg-muted/50 rounded-lg p-2 -m-2 transition-colors"
+                {...longPressHandlers(record)}
+              >
                 <div className="rounded-lg bg-muted p-2 mt-1">
                   {isInstallable ? (
                     <Package className="h-5 w-5 text-muted-foreground" />
@@ -105,16 +106,14 @@ export default function ReceivedDownloadsList({ receivedFiles, maxHeight = '400p
                       variant={isInstallable ? 'default' : 'outline'}
                       onClick={() => handleDownload(record)}
                       disabled={isDownloading}
-                      className="shrink-0"
+                      className="shrink-0 h-11 min-w-[44px]"
                     >
                       {isDownloading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </>
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <Download className="h-4 w-4 mr-1" />
-                          {isInstallable ? 'Download to install' : 'Download'}
+                          <Download className="h-4 w-4 sm:mr-1" />
+                          <span className="hidden sm:inline">{isInstallable ? 'Install' : 'Download'}</span>
                         </>
                       )}
                     </Button>
@@ -125,6 +124,18 @@ export default function ReceivedDownloadsList({ receivedFiles, maxHeight = '400p
           );
         })}
       </div>
-    </ScrollArea>
+
+      <FileContextMenu
+        open={!!contextMenuFile}
+        onOpenChange={(open) => !open && setContextMenuFile(null)}
+        file={contextMenuFile}
+        onDownload={() => {
+          if (contextMenuFile) {
+            handleDownload(contextMenuFile);
+            setContextMenuFile(null);
+          }
+        }}
+      />
+    </>
   );
 }

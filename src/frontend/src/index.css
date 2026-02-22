@@ -3,81 +3,107 @@
 @tailwind utilities;
 
 @layer base {
-    :root {
-        --radius: 0.625rem;
-        --background: 0.98 0 0;
-        --foreground: 0.15 0 0;
-        --card: 1 0 0;
-        --card-foreground: 0.15 0 0;
-        --popover: 1 0 0;
-        --popover-foreground: 0.15 0 0;
-        --primary: 0.55 0.22 260;
-        --primary-foreground: 0.99 0 0;
-        --secondary: 0.96 0.01 260;
-        --secondary-foreground: 0.15 0 0;
-        --muted: 0.96 0.01 260;
-        --muted-foreground: 0.50 0.01 260;
-        --accent: 0.94 0.02 260;
-        --accent-foreground: 0.15 0 0;
-        --destructive: 0.58 0.24 27;
-        --destructive-foreground: 0.99 0 0;
-        --border: 0.90 0.01 260;
-        --input: 0.90 0.01 260;
-        --ring: 0.55 0.22 260;
-        --chart-1: 0.65 0.22 260;
-        --chart-2: 0.60 0.18 200;
-        --chart-3: 0.70 0.20 140;
-        --chart-4: 0.55 0.25 300;
-        --chart-5: 0.75 0.19 80;
-        --sidebar: 0.99 0 0;
-        --sidebar-foreground: 0.15 0 0;
-        --sidebar-primary: 0.55 0.22 260;
-        --sidebar-primary-foreground: 0.99 0 0;
-        --sidebar-accent: 0.96 0.01 260;
-        --sidebar-accent-foreground: 0.15 0 0;
-        --sidebar-border: 0.90 0.01 260;
-        --sidebar-ring: 0.55 0.22 260;
-    }
+  :root {
+    --background: oklch(100% 0 0);
+    --foreground: oklch(15% 0 0);
+    --card: oklch(100% 0 0);
+    --card-foreground: oklch(15% 0 0);
+    --popover: oklch(100% 0 0);
+    --popover-foreground: oklch(15% 0 0);
+    --primary: oklch(62% 0.22 35);
+    --primary-foreground: oklch(100% 0 0);
+    --secondary: oklch(95% 0.01 35);
+    --secondary-foreground: oklch(15% 0 0);
+    --muted: oklch(95% 0.01 35);
+    --muted-foreground: oklch(45% 0.01 35);
+    --accent: oklch(85% 0.08 75);
+    --accent-foreground: oklch(15% 0 0);
+    --destructive: oklch(55% 0.22 25);
+    --destructive-foreground: oklch(100% 0 0);
+    --border: oklch(90% 0.01 35);
+    --input: oklch(90% 0.01 35);
+    --ring: oklch(62% 0.22 35);
+    --radius: 0.5rem;
+  }
 
-    .dark {
-        --background: 0.12 0.01 260;
-        --foreground: 0.98 0 0;
-        --card: 0.16 0.01 260;
-        --card-foreground: 0.98 0 0;
-        --popover: 0.14 0.01 260;
-        --popover-foreground: 0.98 0 0;
-        --primary: 0.65 0.22 260;
-        --primary-foreground: 0.12 0.01 260;
-        --secondary: 0.20 0.02 260;
-        --secondary-foreground: 0.98 0 0;
-        --muted: 0.20 0.02 260;
-        --muted-foreground: 0.65 0.02 260;
-        --accent: 0.24 0.03 260;
-        --accent-foreground: 0.98 0 0;
-        --destructive: 0.65 0.22 27;
-        --destructive-foreground: 0.98 0 0;
-        --border: 0.24 0.03 260;
-        --input: 0.24 0.03 260;
-        --ring: 0.65 0.22 260;
-        --chart-1: 0.65 0.22 260;
-        --chart-2: 0.60 0.18 200;
-        --chart-3: 0.70 0.20 140;
-        --chart-4: 0.55 0.25 300;
-        --chart-5: 0.75 0.19 80;
-        --sidebar: 0.14 0.01 260;
-        --sidebar-foreground: 0.98 0 0;
-        --sidebar-primary: 0.65 0.22 260;
-        --sidebar-primary-foreground: 0.98 0 0;
-        --sidebar-accent: 0.20 0.02 260;
-        --sidebar-accent-foreground: 0.98 0 0;
-        --sidebar-border: 0.24 0.03 260;
-        --sidebar-ring: 0.65 0.22 260;
-    }
+  .dark {
+    --background: oklch(15% 0.01 35);
+    --foreground: oklch(98% 0 0);
+    --card: oklch(18% 0.01 35);
+    --card-foreground: oklch(98% 0 0);
+    --popover: oklch(18% 0.01 35);
+    --popover-foreground: oklch(98% 0 0);
+    --primary: oklch(68% 0.20 35);
+    --primary-foreground: oklch(15% 0 0);
+    --secondary: oklch(25% 0.02 35);
+    --secondary-foreground: oklch(98% 0 0);
+    --muted: oklch(25% 0.02 35);
+    --muted-foreground: oklch(65% 0.01 35);
+    --accent: oklch(35% 0.10 75);
+    --accent-foreground: oklch(98% 0 0);
+    --destructive: oklch(60% 0.20 25);
+    --destructive-foreground: oklch(98% 0 0);
+    --border: oklch(25% 0.02 35);
+    --input: oklch(25% 0.02 35);
+    --ring: oklch(68% 0.20 35);
+  }
+}
 
-    * {
-        @apply border-border;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Modal z-index layering system */
+@layer components {
+  /* Base layer for file selection dialogs */
+  [data-radix-dialog-overlay] {
+    z-index: 40;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  [data-radix-dialog-content] {
+    z-index: 40;
+  }
+  
+  /* Middle layer for navigation drawer with enhanced backdrop */
+  [data-radix-sheet-overlay] {
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(4px);
+  }
+  
+  [data-radix-sheet-content] {
+    z-index: 50;
+  }
+  
+  /* Top layer for profile dialog - override with inline styles */
+  .z-\[100\] {
+    z-index: 100 !important;
+  }
+  
+  /* Ensure profile dialog overlay is also on top */
+  [data-radix-dialog-overlay].z-\[100\] {
+    z-index: 100 !important;
+  }
 }

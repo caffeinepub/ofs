@@ -1,4 +1,5 @@
-const CACHE_NAME = 'ofs-cache-v1';
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `ofs-cache-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -9,6 +10,12 @@ const STATIC_ASSETS = [
   '/assets/generated/file-recognition-placeholder-transparent.dim_64x64.png',
   '/assets/generated/qr-code-icon-transparent.dim_64x64.png',
   '/assets/generated/transfer-progress.dim_600x400.png',
+  '/assets/generated/onboarding-qr.dim_400x300.png',
+  '/assets/generated/onboarding-transfer.dim_400x300.png',
+  '/assets/generated/onboarding-ai.dim_400x300.png',
+  '/assets/generated/empty-transfer.dim_300x200.png',
+  '/assets/generated/empty-history.dim_300x200.png',
+  '/assets/generated/empty-users.dim_300x200.png',
 ];
 
 // Install event - cache static assets
@@ -29,7 +36,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName.startsWith('ofs-cache-') && cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -39,7 +47,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first for API, cache-first for assets
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
@@ -51,6 +59,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Network-first strategy for API calls
+  if (event.request.url.includes('/api/') || event.request.url.includes('?canisterId=')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Clone and cache successful responses
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Cache-first strategy for static assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -88,3 +119,16 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Background sync for failed transfers
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-transfers') {
+    event.waitUntil(syncFailedTransfers());
+  }
+});
+
+async function syncFailedTransfers() {
+  // Placeholder for syncing failed transfers when connection is restored
+  console.log('Syncing failed transfers...');
+  // Implementation would retrieve failed transfers from IndexedDB and retry
+}

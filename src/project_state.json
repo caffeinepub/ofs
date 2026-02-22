@@ -1,7 +1,28 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 71,
+  "projectStateVersion": 102,
   "summary": "OFS is a web-based “wireless file sharing” application built on the Internet Computer. Users authenticate via Internet Identity, create a basic profile, appear in an online-users list, and can upload/share files. The backend (Motoko canister) stores user profiles, file metadata + blob payloads, transfer records, AI-processing audit records, and time-limited QR-code sharing sessions. The frontend (React + TanStack React Query + Tailwind/shadcn UI) provides a tabbed dashboard for file transfer, transfer history, online users, and “AI features” (client-side image compression + client-side file type/metadata recognition) with results recorded to the canister. A QR workflow exists to create a share session for a file and to scan QR codes via camera (jsQR) to fetch file metadata by session ID. The app also includes an installable PWA/offline mode with an Offline dashboard and client-side utilities to package/share files locally (device download/save) without requiring canister connectivity.",
+  "architectural_notes": [
+    "Internet Identity integration wrapped in a React Context provider with persisted identity loading on startup and explicit login/logout handling.",
+    "Backend access is encapsulated via a generated canister actor; a custom useActor hook recreates the actor on identity changes and mass-invalidates/refetches dependent React Query caches.",
+    "Motoko backend uses an explicit role-based access control module (admin/user/guest) and a mixin to expose authorization APIs; first admin assignment is gated by an env-provided token.",
+    "Motoko backend stores all application data in in-memory Map structures (profiles, files, transfers, AI results, QR sessions).",
+    "QR sharing is modeled as a session object with validity + expiry, stored server-side and enforced during fetch/validate/invalidate operations.",
+    "Backend includes a “Caffeine storage” mixin for blob lifecycle/GC and authorized gateway management, relying on external cashier/gateway principals via env vars.",
+    "PWA support added (manifest + service worker) with explicit registration to enable installability and offline-capable UX flows.",
+    "Offline sharing mode implemented as separate dashboard/components with client-side packaging/saving utilities (no canister dependency for the offline flow).",
+    "Frontend template/tooling includes custom ESLint rules (e.g., prohibiting BigInt in React Query keys and enforcing InternetIdentityProvider usage) alongside a vendored shadcn/ui component library for consistent UI primitives.",
+    "Build-template and core components were refreshed to newer component versions (authorization/blob-storage v4.0.0, core-infrastructure v1.0.2) with corresponding updates across backend/frontend and deploy tooling (icp.yaml/deploy.sh/Dockerfile)."
+  ],
+  "known_issues": [
+    "AI image compression is performed client-side; backend compressImage currently only records a result and returns the original blob (no real server-side compression).",
+    "Backend stores full file blobs directly in canister memory and accepts them as single arguments; this will not scale to large files due to IC message/canister memory constraints (no chunking/streaming).",
+    "Environment variable name for the storage cashier principal appears misspelled as \"CAFFFEINE_STORAGE_CASHIER_PRINCIPAL\" (triple 'F'), which may cause deployment/configuration errors.",
+    "Two different global CSS files are present (frontend/index.css and frontend/src/index.css) with different token sets; this can cause styling/theme inconsistency depending on bundler config.",
+    "Online/offline presence is updated on mount/unmount only; abrupt tab closes or network loss may leave stale “online” state until the user reconnects or profile is updated."
+  ],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Mobile onboarding illustration showing QR code sharing concept in a friendly, modern style with warm orange and teal accents (onboarding-qr.dim_400x300.png)\n- Mobile onboarding illustration showing file transfer between two devices with warm orange and teal accents (onboarding-transfer.dim_400x300.png)\n- Mobile onboarding illustration showing AI features with compression and recognition icons with warm orange and teal accents (onboarding-ai.dim_400x300.png)\n- Empty state illustration for transfer tab showing an upload cloud icon with warm colors (empty-transfer.dim_300x200.png)\n- Empty state illustration for history tab showing a timeline or clock icon with warm colors (empty-history.dim_300x200.png)\n- Empty state illustration for users tab showing friendly user avatars or people icons with warm colors (empty-users.dim_300x200.png)",
   "existing_features": [
     {
       "id": "IF-1",
@@ -248,36 +269,641 @@
       "description": "Adds a dedicated UI component to show a list of recently received/downloaded files within the dashboard experience, enabling quick access to recent inbound items after QR-based receive or transfer flows.",
       "reqIds": [],
       "version": 1
+    },
+    {
+      "id": "IF-23",
+      "title": "Downloads management UI (sent/received) with client-side persistence",
+      "synonyms": [
+        "Dashboard Downloads tab",
+        "SentDownloadsList",
+        "ReceivedDownloadsList",
+        "downloadTransferFile"
+      ],
+      "description": "Adds a dedicated Downloads area in the dashboard with separate Sent and Received lists. Provides client-side utilities to download/restore transfer files, persist download history locally, and save files to the device for quick access after transfer/QR receive flows.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-add-viewport-meta-tag-with-mobile-optimized-settings-width-device-width-initial-scale-1-0-maximum-scale-1-0-user-scalable-no-to-frontend-index-html-to-ensure-proper-mobile-rendering",
+      "title": "Add viewport meta tag with mobile-optimized settings (width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no) to frontend/index.html to ensure proper mobile rendering",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redesign-the-header-component-with-a-mobile-first-layout-replace-the-horizontal-navigation-with-a-hamburger-menu-icon-move-theme-toggle-and-user-menu-into-a-slide-out-drawer-and-ensure-touch-friendly-tap-targets-minimum-44x44px",
+      "title": "Redesign the Header component with a mobile-first layout: replace the horizontal navigation with a hamburger menu icon, move theme toggle and user menu into a slide-out drawer, and ensure touch-friendly tap targets (minimum 44x44px)",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-convert-the-dashboard-tabbed-interface-to-a-mobile-optimized-bottom-navigation-bar-with-icons-and-labels-for-file-transfer-history-online-users-and-ai-features-tabs",
+      "title": "Convert the Dashboard tabbed interface to a mobile-optimized bottom navigation bar with icons and labels for File Transfer, History, Online Users, and AI Features tabs",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-optimize-the-filetransfer-component-for-mobile-convert-drag-and-drop-to-a-prominent-upload-button-use-the-native-file-picker-display-progress-cards-in-a-vertical-stack-and-add-haptic-feedback-for-file-selection-and-upload-completion",
+      "title": "Optimize the FileTransfer component for mobile: convert drag-and-drop to a prominent upload button, use the native file picker, display progress cards in a vertical stack, and add haptic feedback for file selection and upload completion",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redesign-the-onlineusers-list-with-mobile-card-layout-display-users-as-full-width-cards-with-avatars-names-and-status-indicators-make-each-card-tappable-to-initiate-file-transfer-and-add-pull-to-refresh-functionality",
+      "title": "Redesign the OnlineUsers list with mobile card layout: display users as full-width cards with avatars, names, and status indicators, make each card tappable to initiate file transfer, and add pull-to-refresh functionality",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-convert-qr-code-workflows-to-mobile-native-patterns-make-qrcodedialog-display-the-qr-code-larger-optimized-for-screen-sharing-and-ensure-qrscannermodal-uses-the-device-s-rear-camera-with-a-fullscreen-viewfinder-and-auto-focus",
+      "title": "Convert QR code workflows to mobile-native patterns: make QRCodeDialog display the QR code larger (optimized for screen sharing), and ensure QRScannerModal uses the device's rear camera with a fullscreen viewfinder and auto-focus",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-optimize-the-transferhistory-component-for-mobile-viewing-display-transfer-records-as-timeline-cards-with-file-icons-recipient-sender-names-timestamps-and-status-badges-and-add-swipe-gestures-to-reveal-download-or-delete-actions",
+      "title": "Optimize the TransferHistory component for mobile viewing: display transfer records as timeline cards with file icons, recipient/sender names, timestamps, and status badges, and add swipe gestures to reveal download or delete actions",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redesign-aifeatures-tab-for-mobile-stack-compression-and-recognition-tools-vertically-use-full-width-action-buttons-and-display-results-in-expandable-cards-with-mobile-optimized-typography",
+      "title": "Redesign AIFeatures tab for mobile: stack compression and recognition tools vertically, use full-width action buttons, and display results in expandable cards with mobile-optimized typography",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-settingsdialog-to-display-as-a-fullscreen-modal-on-mobile-with-a-header-bar-scrollable-content-area-and-a-sticky-save-button-at-the-bottom",
+      "title": "Update the SettingsDialog to display as a fullscreen modal on mobile with a header bar, scrollable content area, and a sticky save button at the bottom",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-mobile-specific-touch-gestures-add-swipe-to-go-back-on-detail-views-pull-to-refresh-on-list-views-online-users-transfer-history-and-long-press-context-menus-for-file-actions",
+      "title": "Implement mobile-specific touch gestures: add swipe-to-go-back on detail views, pull-to-refresh on list views (online users, transfer history), and long-press context menus for file actions",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-optimize-all-interactive-elements-for-touch-increase-button-sizes-to-minimum-44x44px-add-adequate-spacing-between-tappable-items-at-least-8px-and-use-larger-form-inputs-with-proper-mobile-keyboard-types",
+      "title": "Optimize all interactive elements for touch: increase button sizes to minimum 44x44px, add adequate spacing between tappable items (at least 8px), and use larger form inputs with proper mobile keyboard types",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-tailwind-configuration-to-prioritize-mobile-breakpoints-and-add-mobile-specific-utility-classes-for-safe-areas-touch-actions-and-gesture-handling",
+      "title": "Update Tailwind configuration to prioritize mobile breakpoints and add mobile-specific utility classes for safe areas, touch actions, and gesture handling",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-mobile-specific-loading-states-use-skeleton-screens-for-content-loading-show-toast-notifications-for-background-operations-and-implement-optimistic-ui-updates-for-better-perceived-performance",
+      "title": "Add mobile-specific loading states: use skeleton screens for content loading, show toast notifications for background operations, and implement optimistic UI updates for better perceived performance",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-the-pwa-manifest-for-mobile-app-installation-add-appropriate-icon-sizes-192x192-512x512-set-display-mode-to-standalone-configure-theme-colors-and-add-shortcuts-for-quick-actions",
+      "title": "Enhance the PWA manifest for mobile app installation: add appropriate icon sizes (192x192, 512x512), set display mode to 'standalone', configure theme colors, and add shortcuts for quick actions",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-mobile-specific-error-handling-display-full-screen-error-states-with-retry-buttons-show-connection-status-indicators-and-provide-offline-mode-messaging-when-network-is-unavailable",
+      "title": "Implement mobile-specific error handling: display full-screen error states with retry buttons, show connection status indicators, and provide offline mode messaging when network is unavailable",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-creative-cohesive-visual-theme-optimized-for-mobile-choose-a-vibrant-color-palette-avoid-blue-and-purple-implement-smooth-transitions-and-animations-use-card-based-layouts-with-generous-whitespace-and-ensure-high-contrast-for-outdoor-readability",
+      "title": "Add a creative, cohesive visual theme optimized for mobile: choose a vibrant color palette (avoid blue and purple), implement smooth transitions and animations, use card-based layouts with generous whitespace, and ensure high contrast for outdoor readability",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-recent-tab-to-the-dashboard-bottom-navigation-bar-between-the-transfer-and-history-tabs-using-an-appropriate-icon-e-g-clock-or-history-icon-and-label",
+      "title": "Add a 'Recent' tab to the Dashboard bottom navigation bar between the Transfer and History tabs, using an appropriate icon (e.g., clock or history icon) and label.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-recentlyshared-component-that-displays-files-the-current-user-has-recently-shared-sent-to-other-users-showing-the-10-most-recent-transfers-with-file-name-recipient-name-timestamp-file-size-and-status-badge",
+      "title": "Create a RecentlyShared component that displays files the current user has recently shared (sent to other users), showing the 10 most recent transfers with file name, recipient name, timestamp, file size, and status badge.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-dashboard-component-to-render-the-recentlyshared-component-when-the-recent-tab-is-active-maintaining-consistency-with-other-tab-rendering-patterns",
+      "title": "Update the Dashboard component to render the RecentlyShared component when the Recent tab is active, maintaining consistency with other tab rendering patterns.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-a-successful-file-transfer-in-the-filetransfer-component-automatically-switch-the-active-tab-to-recent-to-immediately-show-the-newly-shared-file",
+      "title": "After a successful file transfer in the FileTransfer component, automatically switch the active tab to 'Recent' to immediately show the newly shared file.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-header-component-frontend-src-components-header-tsx-replace-the-hamburger-menu-icon-with-a-settings-gear-icon-while-maintaining-the-same-onclick-behavior-to-open-the-mobile-navigation-drawer",
+      "title": "In the Header component (frontend/src/components/Header.tsx), replace the hamburger menu icon with a settings/gear icon while maintaining the same onClick behavior to open the mobile navigation drawer.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-header-component-frontend-src-components-header-tsx-revert-the-settings-gear-icon-back-to-a-hamburger-menu-icon-while-maintaining-the-same-onclick-behavior-to-open-the-mobile-navigation-drawer",
+      "title": "In the Header component (frontend/src/components/Header.tsx), revert the settings/gear icon back to a hamburger menu icon while maintaining the same onClick behavior to open the mobile navigation drawer",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-background-color-to-the-menu-button-tab-in-the-header-component-to-make-it-visually-distinct",
+      "title": "Add a background color to the menu button/tab in the Header component to make it visually distinct",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-keep-the-theme-toggle-button-positioned-beside-the-menu-button-in-the-header-component",
+      "title": "Keep the theme toggle button positioned beside the menu button in the Header component",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rename-all-instances-of-settings-to-profile-in-the-user-interface-including-the-settingsdialog-component-title-the-mobilenavdrawer-settings-link-and-any-other-ui-labels-that-reference-settings",
+      "title": "Rename all instances of 'Settings' to 'Profile' in the user interface, including the SettingsDialog component title, the MobileNavDrawer settings link, and any other UI labels that reference settings",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-z-index-layering-so-that-when-the-profile-dialog-settingsdialog-is-open-it-displays-above-the-mobile-navigation-drawer-mobilenavdrawer-and-the-select-files-dialog-to-prevent-ui-overlap-issues",
+      "title": "Fix the z-index layering so that when the Profile dialog (SettingsDialog) is open, it displays above the mobile navigation drawer (MobileNavDrawer) and the 'Select Files' dialog to prevent UI overlap issues",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-that-opening-the-profile-dialog-automatically-closes-or-dismisses-the-mobile-navigation-drawer-to-prevent-stacked-modal-confusion",
+      "title": "Ensure that opening the Profile dialog automatically closes or dismisses the mobile navigation drawer to prevent stacked modal confusion",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-visual-distinction-between-the-mobile-navigation-drawer-background-and-the-main-page-content-by-increasing-opacity-or-adjusting-the-backdrop-blur-effect",
+      "title": "Improve the visual distinction between the mobile navigation drawer background and the main page content by increasing opacity or adjusting the backdrop blur effect",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-transform-the-mobilenavdrawer-component-frontend-src-components-mobilenavdrawer-tsx-from-a-slide-out-drawer-to-a-fullscreen-page-view-that-takes-over-the-entire-screen-when-the-menu-button-is-clicked",
+      "title": "Transform the MobileNavDrawer component (frontend/src/components/MobileNavDrawer.tsx) from a slide-out drawer to a fullscreen page/view that takes over the entire screen when the menu button is clicked",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-header-component-s-menu-button-click-handler-to-navigate-to-the-fullscreen-menu-view-instead-of-toggling-a-drawer-state",
+      "title": "Update the Header component's menu button click handler to navigate to the fullscreen menu view instead of toggling a drawer state",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-navigation-routing-or-state-management-to-support-the-fullscreen-menu-view-as-a-separate-screen-within-the-single-page-application",
+      "title": "Implement navigation routing or state management to support the fullscreen menu view as a separate screen within the single-page application",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-sheet-component-implementation-from-mobilenavdrawer-and-replace-it-with-a-fullscreen-layout-component-that-includes-a-header-with-back-navigation-and-scrollable-content-area",
+      "title": "Remove the Sheet component implementation from MobileNavDrawer and replace it with a fullscreen layout component that includes a header with back navigation and scrollable content area",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-theme-toggle-button-from-the-mobilemenu-component-frontend-src-pages-mobilemenu-tsx-eliminating-the-toggle-ui-element-that-currently-appears-inside-the-fullscreen-menu",
+      "title": "Remove the theme toggle button from the MobileMenu component (frontend/src/pages/MobileMenu.tsx), eliminating the toggle UI element that currently appears inside the fullscreen menu",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-transform-the-settingsdialog-component-frontend-src-components-settingsdialog-tsx-to-open-as-a-fullscreen-page-view-instead-of-a-modal-dialog-matching-the-same-pattern-used-for-the-mobilemenu-fullscreen-implementation",
+      "title": "Transform the SettingsDialog component (frontend/src/components/SettingsDialog.tsx) to open as a fullscreen page view instead of a modal dialog, matching the same pattern used for the MobileMenu fullscreen implementation",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-navigation-routing-in-app-tsx-to-support-the-fullscreen-profile-view-as-a-separate-route-e-g-profile-ensuring-the-profile-link-in-mobilemenu-navigates-to-this-route-instead-of-opening-a-modal-dialog",
+      "title": "Update navigation routing in App.tsx to support the fullscreen Profile view as a separate route (e.g., /profile), ensuring the Profile link in MobileMenu navigates to this route instead of opening a modal dialog",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-or-disable-the-modal-dialog-trigger-logic-for-settingsdialog-throughout-the-application-ensuring-the-profile-functionality-is-only-accessible-through-the-fullscreen-route",
+      "title": "Remove or disable the modal dialog trigger logic for SettingsDialog throughout the application, ensuring the Profile functionality is only accessible through the fullscreen route",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-profilepage-component-frontend-src-pages-profilepage-tsx-implement-the-save-changes-button-functionality-to-persist-profile-edits-display-name-and-avatar-url-by-calling-the-existing-useupdateprofile-mutation-hook-when-the-button-is-clicked",
+      "title": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), implement the Save Changes button functionality to persist profile edits (display name and avatar URL) by calling the existing useUpdateProfile mutation hook when the button is clicked",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-viewport-meta-tag-in-frontend-index-html-to-include-viewport-fit-cover-for-proper-iphone-notch-safe-area-support",
+      "title": "Update viewport meta tag in frontend/index.html to include 'viewport-fit=cover' for proper iPhone notch/safe area support",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-ios-specific-pwa-meta-tags-to-frontend-index-html-including-apple-mobile-web-app-capable-apple-mobile-web-app-status-bar-style-black-translucent-and-apple-touch-icon-links",
+      "title": "Add iOS-specific PWA meta tags to frontend/index.html including apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style (black-translucent), and apple-touch-icon links",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-the-pwa-service-worker-frontend-public-sw-js-to-implement-proper-cache-versioning-runtime-caching-strategies-for-api-calls-and-background-sync-for-failed-transfers",
+      "title": "Enhance the PWA service worker (frontend/public/sw.js) to implement proper cache versioning, runtime caching strategies for API calls, and background sync for failed transfers",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-haptic-feedback-for-all-major-user-interactions-including-file-selection-upload-completion-qr-scan-success-and-button-taps-using-the-vibration-api",
+      "title": "Implement haptic feedback for all major user interactions including file selection, upload completion, QR scan success, and button taps using the Vibration API",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-orientation-lock-utility-that-keeps-the-app-in-portrait-mode-on-mobile-devices-by-using-the-screen-orientation-api-with-a-settings-toggle-to-disable-if-needed",
+      "title": "Add orientation lock utility that keeps the app in portrait mode on mobile devices by using the Screen Orientation API, with a settings toggle to disable if needed",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-proper-mobile-keyboard-handling-automatically-scroll-focused-input-fields-into-view-close-keyboard-on-outside-tap-and-use-appropriate-inputmode-attributes-for-email-url-fields",
+      "title": "Implement proper mobile keyboard handling: automatically scroll focused input fields into view, close keyboard on outside tap, and use appropriate inputMode attributes for email/url fields",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-mobile-specific-performance-optimizations-including-lazy-loading-for-images-virtualized-lists-for-transfer-history-with-more-than-20-items-and-debounced-scroll-handlers",
+      "title": "Add mobile-specific performance optimizations including lazy loading for images, virtualized lists for transfer history with more than 20 items, and debounced scroll handlers",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-native-mobile-share-functionality-using-the-web-share-api-add-a-share-button-to-received-files-that-triggers-the-native-share-sheet-for-sharing-file-downloads-with-other-apps",
+      "title": "Implement native mobile share functionality using the Web Share API: add a share button to received files that triggers the native share sheet for sharing file downloads with other apps",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-install-prompt-for-pwa-detect-when-the-app-is-installable-using-beforeinstallprompt-event-and-show-a-custom-banner-or-button-in-the-header-or-mobilemenu-to-trigger-installation",
+      "title": "Add install prompt for PWA: detect when the app is installable using beforeinstallprompt event and show a custom banner or button in the Header or MobileMenu to trigger installation",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-network-aware-behavior-detect-connection-quality-using-network-information-api-and-show-warnings-before-uploading-large-files-on-slow-metered-connections",
+      "title": "Implement network-aware behavior: detect connection quality using Network Information API and show warnings before uploading large files on slow/metered connections",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-bottom-safe-area-padding-to-bottomnavbar-component-to-ensure-proper-spacing-on-devices-with-gesture-indicators-or-home-bars",
+      "title": "Add bottom safe area padding to BottomNavBar component to ensure proper spacing on devices with gesture indicators or home bars",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-mobile-optimized-onboarding-flow-that-shows-a-brief-tutorial-on-first-app-launch-explaining-qr-sharing-file-transfers-and-ai-features-using-swipeable-cards",
+      "title": "Implement a mobile-optimized onboarding flow that shows a brief tutorial on first app launch explaining QR sharing, file transfers, and AI features using swipeable cards",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-visual-feedback-for-network-requests-show-a-subtle-loading-indicator-in-the-header-when-any-mutation-or-query-is-in-progress",
+      "title": "Add visual feedback for network requests: show a subtle loading indicator in the Header when any mutation or query is in progress",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-file-size-limits-and-validation-with-user-friendly-error-messages-warn-users-before-uploading-files-larger-than-10mb-and-prevent-uploads-over-50mb-due-to-canister-memory-constraints",
+      "title": "Implement file size limits and validation with user-friendly error messages: warn users before uploading files larger than 10MB and prevent uploads over 50MB due to canister memory constraints",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-mobile-optimized-empty-state-for-each-tab-in-the-dashboard-with-illustrations-and-call-to-action-buttons-when-no-data-exists",
+      "title": "Add a mobile-optimized empty state for each tab in the Dashboard with illustrations and call-to-action buttons when no data exists",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-optimistic-ui-updates-for-file-transfers-immediately-show-the-transfer-in-the-recent-history-view-while-the-upload-is-in-progress-with-a-pending-status-indicator",
+      "title": "Implement optimistic UI updates for file transfers: immediately show the transfer in the Recent/History view while the upload is in progress, with a pending status indicator",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add a dedicated top-level dashboard tab for “Sent Downloads” alongside Transfer/History/Users/AI Features (instead of placing it inside the Settings dialog).",
+      "summary": "Identify the set of features/UI elements that were added in the most recent production update (the update where a “separate tab” was introduced after login) and remove them so the post-login experience matches the prior version.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "If the removed post-login features introduced any backend APIs, state fields, or persisted data, remove/disable those APIs and ensure existing canister state remains compatible (add a conditional migration only if required to avoid upgrade errors).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Clean up the frontend code to remove unused components, queries, and navigation hooks that become dead code after removing the post-login features, without modifying any files under frontend/src/components/ui or other immutable paths.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Remove the 'Recent' tab from the Dashboard bottom navigation bar, restoring the original four-tab layout with only Transfer, History, Users, and AI Features tabs",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Remove the RecentlyShared component from the codebase",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Remove the Recent tab rendering logic from the Dashboard component, eliminating the conditional rendering of RecentlyShared when the Recent tab was active",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Remove the automatic tab switching to 'Recent' after successful file transfer in the FileTransfer component, restoring the previous post-transfer behavior",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Revert the Header menu icon back to hamburger (undo the settings/gear icon change from AR-8)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add a background color to the menu tab in the Header component",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Change the Settings tab/dialog label to 'Profile' throughout the UI",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Make the mobile navigation drawer (menu tab) open in a separate fullscreen view or screen instead of a slide-out drawer",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Remove the theme toggle button from inside the fullscreen menu (MobileNavDrawer component)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Convert the Profile dialog (SettingsDialog) to open as a fullscreen view matching the same pattern as the menu",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Make the 'Save Changes' button in the Profile page/dialog functional so that profile edits (e.g., display name, avatar URL) are persisted when the user taps/clicks Save Changes",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add viewport meta tag with mobile-optimized settings (width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no) to frontend/index.html",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Redesign Header component with mobile-first layout: hamburger menu, slide-out drawer for theme toggle and user menu, touch-friendly tap targets (minimum 44x44px)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Convert Dashboard tabbed interface to mobile-optimized bottom navigation bar with icons and labels",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Optimize FileTransfer component for mobile: prominent upload button with native file picker, vertical progress cards, haptic feedback",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Redesign OnlineUsers list with mobile card layout: full-width cards with avatars/names/status, tappable to initiate transfer, pull-to-refresh",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Convert QR code workflows to mobile-native patterns: larger QR display for screen sharing, fullscreen camera viewfinder with auto-focus",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Optimize TransferHistory for mobile: timeline cards with file icons/recipient/sender/timestamps/status, swipe gestures for download/delete",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Redesign AIFeatures tab for mobile: vertical stacking, full-width action buttons, expandable result cards",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Update SettingsDialog/Profile to fullscreen modal on mobile with header bar, scrollable content, sticky save button",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Implement mobile touch gestures: swipe-to-go-back, pull-to-refresh on lists, long-press context menus for file actions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Optimize all interactive elements for touch: minimum 44x44px buttons, 8px spacing between tappable items, larger form inputs with proper mobile keyboard types",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Update Tailwind configuration to prioritize mobile breakpoints and add mobile-specific utility classes for safe areas, touch actions, and gesture handling",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Add mobile-specific loading states: skeleton screens, toast notifications for background operations, optimistic UI updates",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Enhance PWA manifest for mobile: appropriate icon sizes (192x192, 512x512), standalone display mode, theme colors, shortcuts for quick actions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Implement mobile-specific error handling: full-screen error states with retry buttons, connection status indicators, offline mode messaging",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add creative cohesive visual theme optimized for mobile: vibrant color palette (avoid blue/purple), smooth transitions/animations, card-based layouts with generous whitespace, high contrast for outdoor readability",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "architectural_notes": [
-    "Internet Identity integration wrapped in a React Context provider with persisted identity loading on startup and explicit login/logout handling.",
-    "Backend access is encapsulated via a generated canister actor; a custom useActor hook recreates the actor on identity changes and mass-invalidates/refetches dependent React Query caches.",
-    "Motoko backend uses an explicit role-based access control module (admin/user/guest) and a mixin to expose authorization APIs; first admin assignment is gated by an env-provided token.",
-    "Motoko backend stores all application data in in-memory Map structures (profiles, files, transfers, AI results, QR sessions).",
-    "QR sharing is modeled as a session object with validity + expiry, stored server-side and enforced during fetch/validate/invalidate operations.",
-    "Backend includes a “Caffeine storage” mixin for blob lifecycle/GC and authorized gateway management, relying on external cashier/gateway principals via env vars.",
-    "PWA support added (manifest + service worker) with explicit registration to enable installability and offline-capable UX flows.",
-    "Offline sharing mode implemented as separate dashboard/components with client-side packaging/saving utilities (no canister dependency for the offline flow).",
-    "Frontend template/tooling includes custom ESLint rules (e.g., prohibiting BigInt in React Query keys and enforcing InternetIdentityProvider usage) alongside a vendored shadcn/ui component library for consistent UI primitives.",
-    "Build-template and core components were refreshed to newer component versions (authorization/blob-storage v4.0.0, core-infrastructure v1.0.2) with corresponding updates across backend/frontend and deploy tooling (icp.yaml/deploy.sh/Dockerfile)."
-  ],
-  "known_issues": [
-    "AI image compression is performed client-side; backend compressImage currently only records a result and returns the original blob (no real server-side compression).",
-    "Backend stores full file blobs directly in canister memory and accepts them as single arguments; this will not scale to large files due to IC message/canister memory constraints (no chunking/streaming).",
-    "Environment variable name for the storage cashier principal appears misspelled as \"CAFFFEINE_STORAGE_CASHIER_PRINCIPAL\" (triple 'F'), which may cause deployment/configuration errors.",
-    "Two different global CSS files are present (frontend/index.css and frontend/src/index.css) with different token sets; this can cause styling/theme inconsistency depending on bundler config.",
-    "Online/offline presence is updated on mount/unmount only; abrupt tab closes or network loss may leave stale “online” state until the user reconnects or profile is updated."
-  ],
-  "isFixRequest": false,
   "gameProjectType": "none",
   "projectName": "OFS",
   "clarification_mode": "instant",

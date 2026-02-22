@@ -1,27 +1,275 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T12:59:26.528Z",
+  "generatedAt": "2026-02-22T07:19:41.231Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 0,
-    "implemented": 0,
-    "items": []
+    "total": 16,
+    "implemented": 16,
+    "items": [
+      {
+        "id": "REQ-45",
+        "summary": "Update viewport meta tag in frontend/index.html to include 'viewport-fit=cover' for proper iPhone notch/safe area support",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/index.html"
+        ],
+        "matchedFiles": [
+          "frontend/index.html"
+        ]
+      },
+      {
+        "id": "REQ-46",
+        "summary": "Add iOS-specific PWA meta tags to frontend/index.html including apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style (black-translucent), and apple-touch-icon links",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/index.html"
+        ],
+        "matchedFiles": [
+          "frontend/index.html"
+        ]
+      },
+      {
+        "id": "REQ-47",
+        "summary": "Enhance the PWA service worker (frontend/public/sw.js) to implement proper cache versioning, runtime caching strategies for API calls, and background sync for failed transfers",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/public/sw.js"
+        ],
+        "matchedFiles": [
+          "frontend/public/sw.js"
+        ]
+      },
+      {
+        "id": "REQ-48",
+        "summary": "Implement haptic feedback for all major user interactions including file selection, upload completion, QR scan success, and button taps using the Vibration API",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useHapticFeedback.ts",
+          "frontend/src/components/FileTransfer.tsx",
+          "frontend/src/components/QRScannerModal.tsx",
+          "frontend/src/components/BottomNavBar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useHapticFeedback.ts",
+          "frontend/src/components/FileTransfer.tsx",
+          "frontend/src/components/QRScannerModal.tsx",
+          "frontend/src/components/BottomNavBar.tsx"
+        ]
+      },
+      {
+        "id": "REQ-49",
+        "summary": "Add orientation lock utility that keeps the app in portrait mode on mobile devices by using the Screen Orientation API, with a settings toggle to disable if needed",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useOrientationLock.ts",
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useOrientationLock.ts",
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-50",
+        "summary": "Implement proper mobile keyboard handling: automatically scroll focused input fields into view, close keyboard on outside tap, and use appropriate inputMode attributes for email/url fields",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useKeyboardHandler.ts",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/pages/ProfilePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useKeyboardHandler.ts",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/pages/ProfilePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-51",
+        "summary": "Add mobile-specific performance optimizations including lazy loading for images, virtualized lists for transfer history with more than 20 items, and debounced scroll handlers",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/OnlineUsers.tsx",
+          "frontend/src/components/TransferHistory.tsx",
+          "frontend/src/components/ReceivedDownloadsList.tsx",
+          "frontend/src/components/SentDownloadsList.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/OnlineUsers.tsx",
+          "frontend/src/components/TransferHistory.tsx",
+          "frontend/src/components/ReceivedDownloadsList.tsx"
+        ]
+      },
+      {
+        "id": "REQ-52",
+        "summary": "Implement native mobile share functionality using the Web Share API: add a share button to received files that triggers the native share sheet for sharing file downloads with other apps",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useWebShare.ts",
+          "frontend/src/components/FileContextMenu.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useWebShare.ts",
+          "frontend/src/components/FileContextMenu.tsx"
+        ]
+      },
+      {
+        "id": "REQ-53",
+        "summary": "Add install prompt for PWA: detect when the app is installable using beforeinstallprompt event and show a custom banner or button in the Header or MobileMenu to trigger installation",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useInstallPrompt.ts",
+          "frontend/src/pages/MobileMenu.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useInstallPrompt.ts",
+          "frontend/src/pages/MobileMenu.tsx"
+        ]
+      },
+      {
+        "id": "REQ-54",
+        "summary": "Implement network-aware behavior: detect connection quality using Network Information API and show warnings before uploading large files on slow/metered connections",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useNetworkInfo.ts",
+          "frontend/src/components/FileTransfer.tsx",
+          "frontend/src/components/NetworkWarningDialog.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useNetworkInfo.ts",
+          "frontend/src/components/FileTransfer.tsx",
+          "frontend/src/components/NetworkWarningDialog.tsx"
+        ]
+      },
+      {
+        "id": "REQ-55",
+        "summary": "Add bottom safe area padding to BottomNavBar component to ensure proper spacing on devices with gesture indicators or home bars",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/BottomNavBar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/BottomNavBar.tsx"
+        ]
+      },
+      {
+        "id": "REQ-56",
+        "summary": "Implement a mobile-optimized onboarding flow that shows a brief tutorial on first app launch explaining QR sharing, file transfers, and AI features using swipeable cards",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/OnboardingTutorial.tsx",
+          "frontend/src/hooks/useOnboarding.ts",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/OnboardingTutorial.tsx",
+          "frontend/src/hooks/useOnboarding.ts",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-57",
+        "summary": "Add visual feedback for network requests: show a subtle loading indicator in the Header when any mutation or query is in progress",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useRequestIndicator.ts",
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useRequestIndicator.ts",
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-58",
+        "summary": "Implement file size limits and validation with user-friendly error messages: warn users before uploading files larger than 10MB and prevent uploads over 50MB due to canister memory constraints",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/utils/fileSizeValidation.ts",
+          "frontend/src/components/FileTransfer.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/utils/fileSizeValidation.ts",
+          "frontend/src/components/FileTransfer.tsx"
+        ]
+      },
+      {
+        "id": "REQ-59",
+        "summary": "Add a mobile-optimized empty state for each tab in the Dashboard with illustrations and call-to-action buttons when no data exists",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/EmptyState.tsx",
+          "frontend/src/components/FileTransfer.tsx",
+          "frontend/src/components/TransferHistory.tsx",
+          "frontend/src/components/OnlineUsers.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/EmptyState.tsx",
+          "frontend/src/components/FileTransfer.tsx",
+          "frontend/src/components/TransferHistory.tsx",
+          "frontend/src/components/OnlineUsers.tsx"
+        ]
+      },
+      {
+        "id": "REQ-60",
+        "summary": "Implement optimistic UI updates for file transfers: immediately show the transfer in the Recent/History view while the upload is in progress, with a pending status indicator",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ReceivedDownloadsList.tsx",
+          "frontend/src/components/SentDownloadsList.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ReceivedDownloadsList.tsx"
+        ]
+      }
+    ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/DashboardSentTab.tsx",
-    "frontend/src/components/SentDownloadsList.tsx",
-    "frontend/src/components/SettingsDialog.tsx",
-    "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/utils/receivedDownloads.ts",
+    "frontend/index.html",
+    "frontend/public/assets/generated/empty-history.dim_300x200.png",
+    "frontend/public/assets/generated/empty-transfer.dim_300x200.png",
+    "frontend/public/assets/generated/empty-users.dim_300x200.png",
+    "frontend/public/assets/generated/onboarding-ai.dim_400x300.png",
+    "frontend/public/assets/generated/onboarding-qr.dim_400x300.png",
+    "frontend/public/assets/generated/onboarding-transfer.dim_400x300.png",
+    "frontend/public/sw.js",
+    "frontend/src/App.tsx",
+    "frontend/src/components/BottomNavBar.tsx",
+    "frontend/src/components/EmptyState.tsx",
+    "frontend/src/components/FileContextMenu.tsx",
+    "frontend/src/components/FileTransfer.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/NetworkWarningDialog.tsx",
+    "frontend/src/components/OnboardingTutorial.tsx",
+    "frontend/src/components/OnlineUsers.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/components/QRScannerModal.tsx",
+    "frontend/src/components/ReceivedDownloadsList.tsx",
+    "frontend/src/components/TransferHistory.tsx",
+    "frontend/src/hooks/useHapticFeedback.ts",
+    "frontend/src/hooks/useInstallPrompt.ts",
+    "frontend/src/hooks/useKeyboardHandler.ts",
+    "frontend/src/hooks/useNetworkInfo.ts",
+    "frontend/src/hooks/useOnboarding.ts",
+    "frontend/src/hooks/useOrientationLock.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useRequestIndicator.ts",
+    "frontend/src/hooks/useWebShare.ts",
+    "frontend/src/pages/MobileMenu.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
+    "frontend/src/utils/fileSizeValidation.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

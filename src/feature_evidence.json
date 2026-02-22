@@ -1,4 +1,378 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-update-viewport-meta-tag-in-frontend-index-html-to-include-viewport-fit-cover-for-proper-iphone-notch-safe-area-support",
+      "featureTitle": "Update viewport meta tag in frontend/index.html to include 'viewport-fit=cover' for proper iPhone notch/safe area support",
+      "files": [
+        "frontend/index.html"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-45"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-ios-specific-pwa-meta-tags-to-frontend-index-html-including-apple-mobile-web-app-capable-apple-mobile-web-app-status-bar-style-black-translucent-and-apple-touch-icon-links",
+      "featureTitle": "Add iOS-specific PWA meta tags to frontend/index.html including apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style (black-translucent), and apple-touch-icon links",
+      "files": [
+        "frontend/index.html"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-46"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enhance-the-pwa-service-worker-frontend-public-sw-js-to-implement-proper-cache-versioning-runtime-caching-strategies-for-api-calls-and-background-sync-for-failed-transfers",
+      "featureTitle": "Enhance the PWA service worker (frontend/public/sw.js) to implement proper cache versioning, runtime caching strategies for API calls, and background sync for failed transfers",
+      "files": [
+        "frontend/public/sw.js"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-47"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-haptic-feedback-for-all-major-user-interactions-including-file-selection-upload-completion-qr-scan-success-and-button-taps-using-the-vibration-api",
+      "featureTitle": "Implement haptic feedback for all major user interactions including file selection, upload completion, QR scan success, and button taps using the Vibration API",
+      "files": [
+        "frontend/src/components/BottomNavBar.tsx",
+        "frontend/src/components/FileTransfer.tsx",
+        "frontend/src/components/QRScannerModal.tsx",
+        "frontend/src/hooks/useHapticFeedback.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-48"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-orientation-lock-utility-that-keeps-the-app-in-portrait-mode-on-mobile-devices-by-using-the-screen-orientation-api-with-a-settings-toggle-to-disable-if-needed",
+      "featureTitle": "Add orientation lock utility that keeps the app in portrait mode on mobile devices by using the Screen Orientation API, with a settings toggle to disable if needed",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useOrientationLock.ts",
+        "frontend/src/pages/ProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-49"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-proper-mobile-keyboard-handling-automatically-scroll-focused-input-fields-into-view-close-keyboard-on-outside-tap-and-use-appropriate-inputmode-attributes-for-email-url-fields",
+      "featureTitle": "Implement proper mobile keyboard handling: automatically scroll focused input fields into view, close keyboard on outside tap, and use appropriate inputMode attributes for email/url fields",
+      "files": [
+        "frontend/src/components/ProfileSetup.tsx",
+        "frontend/src/hooks/useKeyboardHandler.ts",
+        "frontend/src/pages/ProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-50"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-mobile-specific-performance-optimizations-including-lazy-loading-for-images-virtualized-lists-for-transfer-history-with-more-than-20-items-and-debounced-scroll-handlers",
+      "featureTitle": "Add mobile-specific performance optimizations including lazy loading for images, virtualized lists for transfer history with more than 20 items, and debounced scroll handlers",
+      "files": [
+        "frontend/src/components/OnlineUsers.tsx",
+        "frontend/src/components/ReceivedDownloadsList.tsx",
+        "frontend/src/components/TransferHistory.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-51"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-native-mobile-share-functionality-using-the-web-share-api-add-a-share-button-to-received-files-that-triggers-the-native-share-sheet-for-sharing-file-downloads-with-other-apps",
+      "featureTitle": "Implement native mobile share functionality using the Web Share API: add a share button to received files that triggers the native share sheet for sharing file downloads with other apps",
+      "files": [
+        "frontend/src/components/FileContextMenu.tsx",
+        "frontend/src/hooks/useWebShare.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-52"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-install-prompt-for-pwa-detect-when-the-app-is-installable-using-beforeinstallprompt-event-and-show-a-custom-banner-or-button-in-the-header-or-mobilemenu-to-trigger-installation",
+      "featureTitle": "Add install prompt for PWA: detect when the app is installable using beforeinstallprompt event and show a custom banner or button in the Header or MobileMenu to trigger installation",
+      "files": [
+        "frontend/src/hooks/useInstallPrompt.ts",
+        "frontend/src/pages/MobileMenu.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-53"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-network-aware-behavior-detect-connection-quality-using-network-information-api-and-show-warnings-before-uploading-large-files-on-slow-metered-connections",
+      "featureTitle": "Implement network-aware behavior: detect connection quality using Network Information API and show warnings before uploading large files on slow/metered connections",
+      "files": [
+        "frontend/src/components/FileTransfer.tsx",
+        "frontend/src/components/NetworkWarningDialog.tsx",
+        "frontend/src/hooks/useNetworkInfo.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-54"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-bottom-safe-area-padding-to-bottomnavbar-component-to-ensure-proper-spacing-on-devices-with-gesture-indicators-or-home-bars",
+      "featureTitle": "Add bottom safe area padding to BottomNavBar component to ensure proper spacing on devices with gesture indicators or home bars",
+      "files": [
+        "frontend/src/components/BottomNavBar.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-55"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-mobile-optimized-onboarding-flow-that-shows-a-brief-tutorial-on-first-app-launch-explaining-qr-sharing-file-transfers-and-ai-features-using-swipeable-cards",
+      "featureTitle": "Implement a mobile-optimized onboarding flow that shows a brief tutorial on first app launch explaining QR sharing, file transfers, and AI features using swipeable cards",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/OnboardingTutorial.tsx",
+        "frontend/src/hooks/useOnboarding.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-56"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-visual-feedback-for-network-requests-show-a-subtle-loading-indicator-in-the-header-when-any-mutation-or-query-is-in-progress",
+      "featureTitle": "Add visual feedback for network requests: show a subtle loading indicator in the Header when any mutation or query is in progress",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/hooks/useRequestIndicator.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-57"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-file-size-limits-and-validation-with-user-friendly-error-messages-warn-users-before-uploading-files-larger-than-10mb-and-prevent-uploads-over-50mb-due-to-canister-memory-constraints",
+      "featureTitle": "Implement file size limits and validation with user-friendly error messages: warn users before uploading files larger than 10MB and prevent uploads over 50MB due to canister memory constraints",
+      "files": [
+        "frontend/src/components/FileTransfer.tsx",
+        "frontend/src/utils/fileSizeValidation.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-58"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-mobile-optimized-empty-state-for-each-tab-in-the-dashboard-with-illustrations-and-call-to-action-buttons-when-no-data-exists",
+      "featureTitle": "Add a mobile-optimized empty state for each tab in the Dashboard with illustrations and call-to-action buttons when no data exists",
+      "files": [
+        "frontend/src/components/EmptyState.tsx",
+        "frontend/src/components/FileTransfer.tsx",
+        "frontend/src/components/OnlineUsers.tsx",
+        "frontend/src/components/TransferHistory.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-59"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-optimistic-ui-updates-for-file-transfers-immediately-show-the-transfer-in-the-recent-history-view-while-the-upload-is-in-progress-with-a-pending-status-indicator",
+      "featureTitle": "Implement optimistic UI updates for file transfers: immediately show the transfer in the Recent/History view while the upload is in progress, with a pending status indicator",
+      "files": [
+        "frontend/src/components/ReceivedDownloadsList.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "camera@1.0.0",
+        "qr-code@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-60"
+      ],
+      "confidence": "high"
+    }
+  ]
 }
