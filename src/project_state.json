@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 102,
+  "projectStateVersion": 110,
   "summary": "OFS is a web-based “wireless file sharing” application built on the Internet Computer. Users authenticate via Internet Identity, create a basic profile, appear in an online-users list, and can upload/share files. The backend (Motoko canister) stores user profiles, file metadata + blob payloads, transfer records, AI-processing audit records, and time-limited QR-code sharing sessions. The frontend (React + TanStack React Query + Tailwind/shadcn UI) provides a tabbed dashboard for file transfer, transfer history, online users, and “AI features” (client-side image compression + client-side file type/metadata recognition) with results recorded to the canister. A QR workflow exists to create a share session for a file and to scan QR codes via camera (jsQR) to fetch file metadata by session ID. The app also includes an installable PWA/offline mode with an Offline dashboard and client-side utilities to package/share files locally (device download/save) without requiring canister connectivity.",
   "architectural_notes": [
     "Internet Identity integration wrapped in a React Context provider with persisted identity loading on startup and explicit login/logout handling.",
@@ -22,7 +22,6 @@
     "Online/offline presence is updated on mount/unmount only; abrupt tab closes or network loss may leave stale “online” state until the user reconnects or profile is updated."
   ],
   "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Mobile onboarding illustration showing QR code sharing concept in a friendly, modern style with warm orange and teal accents (onboarding-qr.dim_400x300.png)\n- Mobile onboarding illustration showing file transfer between two devices with warm orange and teal accents (onboarding-transfer.dim_400x300.png)\n- Mobile onboarding illustration showing AI features with compression and recognition icons with warm orange and teal accents (onboarding-ai.dim_400x300.png)\n- Empty state illustration for transfer tab showing an upload cloud icon with warm colors (empty-transfer.dim_300x200.png)\n- Empty state illustration for history tab showing a timeline or clock icon with warm colors (empty-history.dim_300x200.png)\n- Empty state illustration for users tab showing friendly user avatars or people icons with warm colors (empty-users.dim_300x200.png)",
   "existing_features": [
     {
       "id": "IF-1",
@@ -706,200 +705,84 @@
         "REQ-60"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-in-the-profilepage-component-frontend-src-pages-profilepage-tsx-after-the-useupdateprofile-mutation-successfully-completes-when-the-user-clicks-save-changes-programmatically-navigate-to-the-dashboard-transfer-tab-using-react-router-navigation",
+      "title": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), after the useUpdateProfile mutation successfully completes when the user clicks 'Save Changes', programmatically navigate to the Dashboard Transfer tab using React Router navigation",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-profilepage-component-frontend-src-pages-profilepage-tsx-remove-the-programmatic-navigation-to-the-dashboard-transfer-tab-that-occurs-after-the-useupdateprofile-mutation-successfully-completes-when-the-user-clicks-save-changes",
+      "title": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), remove the programmatic navigation to the Dashboard Transfer tab that occurs after the useUpdateProfile mutation successfully completes when the user clicks 'Save Changes'",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-transferhistory-component-frontend-src-components-transferhistory-tsx-add-two-prominent-action-buttons-labeled-send-files-and-receive-files-at-the-top-of-the-received-tab-content-area-above-the-receiveddownloadslist-component",
+      "title": "In the TransferHistory component (frontend/src/components/TransferHistory.tsx), add two prominent action buttons labeled 'Send Files' and 'Receive Files' at the top of the Received tab content area, above the ReceivedDownloadsList component",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-send-files-button-click-handler-to-switch-the-active-dashboard-tab-to-transfer-programmatically-navigating-the-user-to-the-file-transfer-interface",
+      "title": "Wire the 'Send Files' button click handler to switch the active Dashboard tab to 'transfer', programmatically navigating the user to the file transfer interface",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-receive-files-button-click-handler-to-open-the-qr-scanner-modal-qrscannermodal-component-allowing-users-to-scan-qr-codes-to-receive-files",
+      "title": "Wire the 'Receive Files' button click handler to open the QR scanner modal (QRScannerModal component), allowing users to scan QR codes to receive files",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Identify the set of features/UI elements that were added in the most recent production update (the update where a “separate tab” was introduced after login) and remove them so the post-login experience matches the prior version.",
+      "summary": "Remove the 'Recent' tab from the Dashboard bottom navigation bar (BottomNavBar component), reverting to the original four-tab layout with Transfer, History, Users, and AI tabs only",
       "reqIds": [
-        "REQ-1"
+        "REQ-63"
       ],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "If the removed post-login features introduced any backend APIs, state fields, or persisted data, remove/disable those APIs and ensure existing canister state remains compatible (add a conditional migration only if required to avoid upgrade errors).",
+      "summary": "Remove the RecentlyShared component from the codebase entirely, including its file and all imports/references",
       "reqIds": [
-        "REQ-2"
+        "REQ-64"
       ],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Clean up the frontend code to remove unused components, queries, and navigation hooks that become dead code after removing the post-login features, without modifying any files under frontend/src/components/ui or other immutable paths.",
+      "summary": "Remove the automatic tab switching behavior from the FileTransfer component that navigates to the 'Recent' tab after successful file transfer",
       "reqIds": [
-        "REQ-3"
+        "REQ-65"
       ],
       "status": "pending"
     },
     {
       "id": "AR-4",
-      "summary": "Remove the 'Recent' tab from the Dashboard bottom navigation bar, restoring the original four-tab layout with only Transfer, History, Users, and AI Features tabs",
+      "summary": "Update the Dashboard component to remove all rendering logic, state management, and routing associated with the Recent tab and RecentlyShared component",
       "reqIds": [
-        "REQ-24"
+        "REQ-66"
       ],
       "status": "pending"
     },
     {
       "id": "AR-5",
-      "summary": "Remove the RecentlyShared component from the codebase",
-      "reqIds": [
-        "REQ-25"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Remove the Recent tab rendering logic from the Dashboard component, eliminating the conditional rendering of RecentlyShared when the Recent tab was active",
-      "reqIds": [
-        "REQ-26"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Remove the automatic tab switching to 'Recent' after successful file transfer in the FileTransfer component, restoring the previous post-transfer behavior",
-      "reqIds": [
-        "REQ-27"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Revert the Header menu icon back to hamburger (undo the settings/gear icon change from AR-8)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Add a background color to the menu tab in the Header component",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Change the Settings tab/dialog label to 'Profile' throughout the UI",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Make the mobile navigation drawer (menu tab) open in a separate fullscreen view or screen instead of a slide-out drawer",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Remove the theme toggle button from inside the fullscreen menu (MobileNavDrawer component)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "Convert the Profile dialog (SettingsDialog) to open as a fullscreen view matching the same pattern as the menu",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-15",
-      "summary": "Make the 'Save Changes' button in the Profile page/dialog functional so that profile edits (e.g., display name, avatar URL) are persisted when the user taps/clicks Save Changes",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-16",
-      "summary": "Add viewport meta tag with mobile-optimized settings (width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no) to frontend/index.html",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-17",
-      "summary": "Redesign Header component with mobile-first layout: hamburger menu, slide-out drawer for theme toggle and user menu, touch-friendly tap targets (minimum 44x44px)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-18",
-      "summary": "Convert Dashboard tabbed interface to mobile-optimized bottom navigation bar with icons and labels",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-19",
-      "summary": "Optimize FileTransfer component for mobile: prominent upload button with native file picker, vertical progress cards, haptic feedback",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-20",
-      "summary": "Redesign OnlineUsers list with mobile card layout: full-width cards with avatars/names/status, tappable to initiate transfer, pull-to-refresh",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-21",
-      "summary": "Convert QR code workflows to mobile-native patterns: larger QR display for screen sharing, fullscreen camera viewfinder with auto-focus",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-22",
-      "summary": "Optimize TransferHistory for mobile: timeline cards with file icons/recipient/sender/timestamps/status, swipe gestures for download/delete",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-23",
-      "summary": "Redesign AIFeatures tab for mobile: vertical stacking, full-width action buttons, expandable result cards",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-24",
-      "summary": "Update SettingsDialog/Profile to fullscreen modal on mobile with header bar, scrollable content, sticky save button",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-25",
-      "summary": "Implement mobile touch gestures: swipe-to-go-back, pull-to-refresh on lists, long-press context menus for file actions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-26",
-      "summary": "Optimize all interactive elements for touch: minimum 44x44px buttons, 8px spacing between tappable items, larger form inputs with proper mobile keyboard types",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-27",
-      "summary": "Update Tailwind configuration to prioritize mobile breakpoints and add mobile-specific utility classes for safe areas, touch actions, and gesture handling",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-28",
-      "summary": "Add mobile-specific loading states: skeleton screens, toast notifications for background operations, optimistic UI updates",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-29",
-      "summary": "Enhance PWA manifest for mobile: appropriate icon sizes (192x192, 512x512), standalone display mode, theme colors, shortcuts for quick actions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-30",
-      "summary": "Implement mobile-specific error handling: full-screen error states with retry buttons, connection status indicators, offline mode messaging",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-31",
-      "summary": "Add creative cohesive visual theme optimized for mobile: vibrant color palette (avoid blue/purple), smooth transitions/animations, card-based layouts with generous whitespace, high contrast for outdoor readability",
+      "summary": "Add send and receive buttons to the Receive tab in the Downloads section of the Dashboard",
       "reqIds": [],
       "status": "pending"
     }

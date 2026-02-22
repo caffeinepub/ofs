@@ -1,336 +1,68 @@
 {
   "kind": "build_request",
-  "title": "Optimize application for mobile devices",
-  "projectName": "Offline File Sharing",
+  "title": "Add send and receive buttons to the Receive tab",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-45",
-      "text": "Update viewport meta tag in frontend/index.html to include 'viewport-fit=cover' for proper iPhone notch/safe area support",
+      "id": "REQ-67",
+      "text": "In the TransferHistory component (frontend/src/components/TransferHistory.tsx), add two prominent action buttons labeled 'Send Files' and 'Receive Files' at the top of the Received tab content area, above the ReceivedDownloadsList component",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
+          "msg-4"
         ]
       },
       "acceptanceCriteria": [
-        "Viewport meta tag includes viewport-fit=cover attribute",
-        "App content respects safe areas on devices with notches or rounded corners"
+        "Two buttons are displayed at the top of the Received tab",
+        "Buttons are labeled 'Send Files' and 'Receive Files'",
+        "Buttons are touch-friendly (minimum 44x44px) and visually distinct",
+        "Buttons maintain the mobile-optimized design language of the app"
       ]
     },
     {
-      "id": "REQ-46",
-      "text": "Add iOS-specific PWA meta tags to frontend/index.html including apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style (black-translucent), and apple-touch-icon links",
+      "id": "REQ-68",
+      "text": "Wire the 'Send Files' button click handler to switch the active Dashboard tab to 'transfer', programmatically navigating the user to the file transfer interface",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
+          "msg-4"
         ]
       },
       "acceptanceCriteria": [
-        "apple-mobile-web-app-capable meta tag is set to 'yes'",
-        "apple-mobile-web-app-status-bar-style is set to 'black-translucent'",
-        "apple-touch-icon link tags point to appropriate icon sizes"
+        "Clicking 'Send Files' navigates to the Transfer tab in the Dashboard",
+        "Navigation uses the existing tab switching mechanism (URL hash or state management)",
+        "Haptic feedback is triggered on button tap"
       ]
     },
     {
-      "id": "REQ-47",
-      "text": "Enhance the PWA service worker (frontend/public/sw.js) to implement proper cache versioning, runtime caching strategies for API calls, and background sync for failed transfers",
+      "id": "REQ-69",
+      "text": "Wire the 'Receive Files' button click handler to open the QR scanner modal (QRScannerModal component), allowing users to scan QR codes to receive files",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
+          "msg-4"
         ]
       },
       "acceptanceCriteria": [
-        "Service worker includes versioned cache names with automatic cleanup of old caches",
-        "API calls use network-first strategy with cache fallback",
-        "Failed file transfers queue for background sync when connection is restored"
-      ]
-    },
-    {
-      "id": "REQ-48",
-      "text": "Implement haptic feedback for all major user interactions including file selection, upload completion, QR scan success, and button taps using the Vibration API",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Light haptic feedback (10ms) triggers on button taps",
-        "Medium haptic feedback (20ms) triggers on file selection",
-        "Success haptic pattern (two pulses) triggers on upload completion and QR scan success",
-        "Haptic feedback is feature-detected and fails gracefully on unsupported devices"
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "text": "Add orientation lock utility that keeps the app in portrait mode on mobile devices by using the Screen Orientation API, with a settings toggle to disable if needed",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "App attempts to lock to portrait orientation on mobile devices",
-        "ProfilePage includes a toggle to enable/disable orientation lock",
-        "Orientation preference persists in localStorage",
-        "Gracefully handles unsupported devices without errors"
-      ]
-    },
-    {
-      "id": "REQ-50",
-      "text": "Implement proper mobile keyboard handling: automatically scroll focused input fields into view, close keyboard on outside tap, and use appropriate inputMode attributes for email/url fields",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Input fields automatically scroll into view when focused and keyboard appears",
-        "Tapping outside input fields dismisses the keyboard",
-        "Avatar URL input uses inputMode='url'",
-        "Form inputs have proper mobile keyboard types configured"
-      ]
-    },
-    {
-      "id": "REQ-51",
-      "text": "Add mobile-specific performance optimizations including lazy loading for images, virtualized lists for transfer history with more than 20 items, and debounced scroll handlers",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "User avatars and file preview images load lazily using loading='lazy' attribute",
-        "Transfer history and online users lists implement virtual scrolling when item count exceeds 20",
-        "All scroll event handlers are debounced to prevent performance issues"
-      ]
-    },
-    {
-      "id": "REQ-52",
-      "text": "Implement native mobile share functionality using the Web Share API: add a share button to received files that triggers the native share sheet for sharing file downloads with other apps",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Share button appears in FileContextMenu for received files on supported devices",
-        "Clicking share button triggers native share sheet with file name and blob",
-        "Share functionality is feature-detected and hidden on unsupported browsers",
-        "Share includes file metadata (name, type, size)"
-      ]
-    },
-    {
-      "id": "REQ-53",
-      "text": "Add install prompt for PWA: detect when the app is installable using beforeinstallprompt event and show a custom banner or button in the Header or MobileMenu to trigger installation",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "App captures beforeinstallprompt event and stores the prompt",
-        "Install button appears in MobileMenu when app is installable and not yet installed",
-        "Clicking install button triggers the native install prompt",
-        "Install button is hidden after successful installation"
-      ]
-    },
-    {
-      "id": "REQ-54",
-      "text": "Implement network-aware behavior: detect connection quality using Network Information API and show warnings before uploading large files on slow/metered connections",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "App detects connection type (4g, 3g, 2g) and speed using Network Information API",
-        "Warning dialog appears when uploading files >5MB on 2g/slow-2g connections",
-        "Warning dialog appears when uploading on metered connections (saveData: true)",
-        "User can dismiss warning and proceed with upload"
-      ]
-    },
-    {
-      "id": "REQ-55",
-      "text": "Add bottom safe area padding to BottomNavBar component to ensure proper spacing on devices with gesture indicators or home bars",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "BottomNavBar includes padding-bottom using env(safe-area-inset-bottom)",
-        "Navigation bar items remain fully tappable above the device gesture area",
-        "Safe area padding is visually consistent with the navigation bar background"
-      ]
-    },
-    {
-      "id": "REQ-56",
-      "text": "Implement a mobile-optimized onboarding flow that shows a brief tutorial on first app launch explaining QR sharing, file transfers, and AI features using swipeable cards",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Onboarding tutorial appears after profile setup for first-time users",
-        "Tutorial consists of 3-4 swipeable cards with illustrations and brief text",
-        "User can skip tutorial or complete it to dismiss",
-        "Tutorial completion state persists in localStorage and does not show again"
-      ]
-    },
-    {
-      "id": "REQ-57",
-      "text": "Add visual feedback for network requests: show a subtle loading indicator in the Header when any mutation or query is in progress",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Small spinner or progress indicator appears in Header during active requests",
-        "Indicator is positioned near the app title or in the header corner",
-        "Indicator disappears when all pending requests complete",
-        "Multiple simultaneous requests show a single indicator"
-      ]
-    },
-    {
-      "id": "REQ-58",
-      "text": "Implement file size limits and validation with user-friendly error messages: warn users before uploading files larger than 10MB and prevent uploads over 50MB due to canister memory constraints",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Warning toast appears when selecting files between 10MB and 50MB",
-        "Error message blocks file selection for files over 50MB",
-        "File size is validated before upload begins",
-        "Error messages explain the size limits and suggest file compression"
-      ]
-    },
-    {
-      "id": "REQ-59",
-      "text": "Add a mobile-optimized empty state for each tab in the Dashboard with illustrations and call-to-action buttons when no data exists",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Transfer tab shows empty state with upload button when no transfers exist",
-        "History tab shows empty state encouraging first file transfer when history is empty",
-        "Users tab shows empty state when no other users are online",
-        "Each empty state includes an icon or illustration and descriptive text"
-      ]
-    },
-    {
-      "id": "REQ-60",
-      "text": "Implement optimistic UI updates for file transfers: immediately show the transfer in the Recent/History view while the upload is in progress, with a pending status indicator",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Make this mobile application"
-        ]
-      },
-      "acceptanceCriteria": [
-        "File transfer appears in history immediately upon upload start with 'pending' status",
-        "Status updates to 'completed' when backend confirms successful upload",
-        "Failed uploads show 'failed' status with retry option",
-        "Optimistic updates roll back if upload fails completely"
+        "Clicking 'Receive Files' opens the QRScannerModal",
+        "Modal uses the device camera to scan QR codes",
+        "Haptic feedback is triggered on button tap",
+        "Successful QR scan follows the existing session-based file receive workflow"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Maintain single-actor architecture in backend/main.mo without introducing multiple canisters",
-    "Do not introduce external databases or third-party cloud services",
-    "Preserve existing Internet Identity authentication flow",
-    "Keep all styling within Tailwind CSS + shadcn UI framework",
-    "Do not introduce real-time features like WebSockets or Socket.io",
-    "Respect the 50MB file size limitation due to IC canister memory constraints"
+    "Do not modify the existing ReceivedDownloadsList component functionality",
+    "Maintain consistency with the mobile-first design patterns used throughout the app",
+    "Use existing QR scanner modal and tab navigation mechanisms"
   ],
   "nonGoals": [
-    "Android or iOS native app development",
-    "Backend chunking or streaming for large files (known limitation)",
-    "Real-time multiplayer features or live collaboration",
-    "Integration with third-party cloud storage services",
-    "Implementing a backend API for AI processing (client-side only)",
-    "Adding user-to-user messaging or chat features",
-    "Implementing payment processing or monetization features",
-    "Supporting landscape orientation as the primary layout"
+    "Adding send/receive buttons to other tabs",
+    "Changing the existing file download or transfer workflows",
+    "Modifying the QR code scanning implementation"
   ],
   "imageRequirements": {
-    "required": [
-      "Mobile onboarding illustration showing QR code sharing concept in a friendly, modern style with warm orange and teal accents (onboarding-qr.dim_400x300.png)",
-      "Mobile onboarding illustration showing file transfer between two devices with warm orange and teal accents (onboarding-transfer.dim_400x300.png)",
-      "Mobile onboarding illustration showing AI features with compression and recognition icons with warm orange and teal accents (onboarding-ai.dim_400x300.png)",
-      "Empty state illustration for transfer tab showing an upload cloud icon with warm colors (empty-transfer.dim_300x200.png)",
-      "Empty state illustration for history tab showing a timeline or clock icon with warm colors (empty-history.dim_300x200.png)",
-      "Empty state illustration for users tab showing friendly user avatars or people icons with warm colors (empty-users.dim_300x200.png)"
-    ],
+    "required": [],
     "edits": []
   }
 }

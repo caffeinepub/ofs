@@ -1,386 +1,55 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Optimize application for mobile devices",
+  "title": "Add send and receive buttons to the Receive tab",
   "requirements": [
     {
-      "id": "REQ-45",
-      "summary": "Update viewport meta tag for iPhone notch/safe area support",
+      "id": "REQ-67",
+      "summary": "Add 'Send Files' and 'Receive Files' action buttons at the top of the Received tab in TransferHistory component",
       "acceptanceCriteria": [
-        "Viewport meta tag includes viewport-fit=cover attribute",
-        "App content respects safe areas on devices with notches or rounded corners"
+        "Two buttons are displayed at the top of the Received tab",
+        "Buttons are labeled 'Send Files' and 'Receive Files'",
+        "Buttons are touch-friendly (minimum 44x44px) and visually distinct",
+        "Buttons maintain the mobile-optimized design language of the app"
       ],
       "file_operations": [
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Add 'viewport-fit=cover' to the existing viewport meta tag to enable safe area inset support on devices with notches or rounded corners"
-        }
-      ]
-    },
-    {
-      "id": "REQ-46",
-      "summary": "Add iOS-specific PWA meta tags for better app-like experience",
-      "acceptanceCriteria": [
-        "apple-mobile-web-app-capable meta tag is set to 'yes'",
-        "apple-mobile-web-app-status-bar-style is set to 'black-translucent'",
-        "apple-touch-icon link tags point to appropriate icon sizes"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Add apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style (black-translucent), and apple-touch-icon link tags pointing to frontend/public/assets/generated/app-icon-192.dim_192x192.png and app-icon-512.dim_512x512.png"
-        }
-      ]
-    },
-    {
-      "id": "REQ-47",
-      "summary": "Enhance service worker with cache versioning, runtime strategies, and background sync",
-      "acceptanceCriteria": [
-        "Service worker includes versioned cache names with automatic cleanup of old caches",
-        "API calls use network-first strategy with cache fallback",
-        "Failed file transfers queue for background sync when connection is restored"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/sw.js",
-          "operation": "modify",
-          "description": "Add cache versioning with automatic cleanup of old caches on activation. Implement network-first strategy with cache fallback for API calls (fetch events matching /api/). Add background sync registration for failed transfers using the Sync API"
-        }
-      ]
-    },
-    {
-      "id": "REQ-48",
-      "summary": "Implement haptic feedback for major user interactions",
-      "acceptanceCriteria": [
-        "Light haptic feedback (10ms) triggers on button taps",
-        "Medium haptic feedback (20ms) triggers on file selection",
-        "Success haptic pattern (two pulses) triggers on upload completion and QR scan success",
-        "Haptic feedback is feature-detected and fails gracefully on unsupported devices"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useHapticFeedback.ts",
-          "operation": "create",
-          "description": "Create a custom hook that wraps the Vibration API with feature detection. Export functions: triggerLight() for 10ms, triggerMedium() for 20ms, triggerSuccess() for two 15ms pulses with 100ms gap. Include graceful fallback for unsupported devices"
-        },
-        {
-          "path": "frontend/src/components/FileTransfer.tsx",
-          "operation": "modify",
-          "description": "Import useHapticFeedback hook. Trigger medium haptic on file selection, success haptic on upload completion"
-        },
-        {
-          "path": "frontend/src/components/QRScannerModal.tsx",
-          "operation": "modify",
-          "description": "Import useHapticFeedback hook and trigger success haptic when QR code is successfully scanned"
-        },
-        {
-          "path": "frontend/src/components/BottomNavBar.tsx",
-          "operation": "modify",
-          "description": "Import useHapticFeedback hook and trigger light haptic on tab button clicks"
-        }
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "summary": "Add orientation lock utility with settings toggle",
-      "acceptanceCriteria": [
-        "App attempts to lock to portrait orientation on mobile devices",
-        "ProfilePage includes a toggle to enable/disable orientation lock",
-        "Orientation preference persists in localStorage",
-        "Gracefully handles unsupported devices without errors"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useOrientationLock.ts",
-          "operation": "create",
-          "description": "Create a custom hook using the Screen Orientation API to lock portrait orientation. Include feature detection, localStorage persistence for preference ('orientationLockEnabled'), and functions to enable/disable lock. Return current lock state and toggle function"
-        },
-        {
-          "path": "frontend/src/pages/ProfilePage.tsx",
-          "operation": "modify",
-          "description": "Import useOrientationLock hook and add a toggle switch in the settings section to enable/disable orientation lock. Display current state and allow user to toggle preference"
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Import useOrientationLock hook and initialize orientation lock based on stored preference when app loads"
-        }
-      ]
-    },
-    {
-      "id": "REQ-50",
-      "summary": "Implement proper mobile keyboard handling",
-      "acceptanceCriteria": [
-        "Input fields automatically scroll into view when focused and keyboard appears",
-        "Tapping outside input fields dismisses the keyboard",
-        "Avatar URL input uses inputMode='url'",
-        "Form inputs have proper mobile keyboard types configured"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useKeyboardHandler.ts",
-          "operation": "create",
-          "description": "Create a custom hook that handles automatic scroll-into-view on input focus using scrollIntoView with smooth behavior. Export function to attach to input refs and handle outside tap to blur active element"
-        },
-        {
-          "path": "frontend/src/components/ProfileSetup.tsx",
-          "operation": "modify",
-          "description": "Add inputMode='url' to avatar URL input field. Use useKeyboardHandler hook to enable automatic scroll and outside-tap-to-dismiss behavior for form inputs"
-        },
-        {
-          "path": "frontend/src/pages/ProfilePage.tsx",
-          "operation": "modify",
-          "description": "Add inputMode='url' to avatar URL input field. Use useKeyboardHandler hook to enable automatic scroll and outside-tap-to-dismiss behavior for form inputs"
-        }
-      ]
-    },
-    {
-      "id": "REQ-51",
-      "summary": "Add mobile-specific performance optimizations",
-      "acceptanceCriteria": [
-        "User avatars and file preview images load lazily using loading='lazy' attribute",
-        "Transfer history and online users lists implement virtual scrolling when item count exceeds 20",
-        "All scroll event handlers are debounced to prevent performance issues"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/OnlineUsers.tsx",
-          "operation": "modify",
-          "description": "Add loading='lazy' to user avatar images. Implement virtual scrolling using @tanstack/react-virtual when user count exceeds 20. Debounce scroll handlers with 100ms delay"
-        },
         {
           "path": "frontend/src/components/TransferHistory.tsx",
           "operation": "modify",
-          "description": "Implement virtual scrolling using @tanstack/react-virtual for both received and sent lists when item count exceeds 20. Add loading='lazy' to any file preview or user avatar images"
-        },
-        {
-          "path": "frontend/src/components/ReceivedDownloadsList.tsx",
-          "operation": "modify",
-          "description": "Add loading='lazy' attribute to any images displayed in the list items"
-        },
-        {
-          "path": "frontend/src/components/SentDownloadsList.tsx",
-          "operation": "modify",
-          "description": "Add loading='lazy' attribute to any images displayed in the list items"
+          "description": "Add two prominent action buttons labeled 'Send Files' and 'Receive Files' at the top of the Received tab content area, positioned above the ReceivedDownloadsList component. Use shadcn/ui Button component with appropriate styling (minimum 44x44px touch target, rounded corners, and consistent with app's mobile-first design). Wrap buttons in a flex container with proper spacing. These buttons should only appear when the activeTab is 'received'."
         }
       ]
     },
     {
-      "id": "REQ-52",
-      "summary": "Implement native mobile share functionality using Web Share API",
+      "id": "REQ-68",
+      "summary": "Wire 'Send Files' button to switch Dashboard tab to 'transfer' programmatically",
       "acceptanceCriteria": [
-        "Share button appears in FileContextMenu for received files on supported devices",
-        "Clicking share button triggers native share sheet with file name and blob",
-        "Share functionality is feature-detected and hidden on unsupported browsers",
-        "Share includes file metadata (name, type, size)"
+        "Clicking 'Send Files' navigates to the Transfer tab in the Dashboard",
+        "Navigation uses the existing tab switching mechanism (URL hash or state management)",
+        "Haptic feedback is triggered on button tap"
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/hooks/useWebShare.ts",
-          "operation": "create",
-          "description": "Create a custom hook that wraps the Web Share API with feature detection. Export isShareSupported boolean and shareFile function that accepts file metadata (name, type, size) and blob, then triggers navigator.share with a File object"
-        },
-        {
-          "path": "frontend/src/components/FileContextMenu.tsx",
-          "operation": "modify",
-          "description": "Import useWebShare hook. Add a share button that appears when isShareSupported is true. On click, call shareFile with the current file's metadata and blob. Position share button between download and delete actions"
-        }
-      ]
-    },
-    {
-      "id": "REQ-53",
-      "summary": "Add PWA install prompt with custom UI",
-      "acceptanceCriteria": [
-        "App captures beforeinstallprompt event and stores the prompt",
-        "Install button appears in MobileMenu when app is installable and not yet installed",
-        "Clicking install button triggers the native install prompt",
-        "Install button is hidden after successful installation"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useInstallPrompt.ts",
-          "operation": "create",
-          "description": "Create a custom hook that captures beforeinstallprompt event, stores the prompt in state, and provides install function. Track installation state using appinstalled event and return isInstallable and promptInstall function"
-        },
-        {
-          "path": "frontend/src/pages/MobileMenu.tsx",
-          "operation": "modify",
-          "description": "Import useInstallPrompt hook. Add an install button in the menu that appears when isInstallable is true and app is not installed. On click, call promptInstall to trigger native install prompt. Hide button after successful installation"
-        }
-      ]
-    },
-    {
-      "id": "REQ-54",
-      "summary": "Implement network-aware behavior with connection quality detection",
-      "acceptanceCriteria": [
-        "App detects connection type (4g, 3g, 2g) and speed using Network Information API",
-        "Warning dialog appears when uploading files >5MB on 2g/slow-2g connections",
-        "Warning dialog appears when uploading on metered connections (saveData: true)",
-        "User can dismiss warning and proceed with upload"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useNetworkInfo.ts",
-          "operation": "create",
-          "description": "Create a custom hook using Network Information API (navigator.connection). Return connection type (effectiveType), saveData boolean, and functions to check if connection is slow (2g/slow-2g) or metered. Include feature detection and fallback values"
-        },
-        {
-          "path": "frontend/src/components/FileTransfer.tsx",
-          "operation": "modify",
-          "description": "Import useNetworkInfo hook. Before starting upload, check if file size >5MB and connection is slow or metered. Show warning dialog with file size and connection type, allowing user to cancel or proceed. Proceed with upload only after user confirmation"
-        },
-        {
-          "path": "frontend/src/components/NetworkWarningDialog.tsx",
-          "operation": "create",
-          "description": "Create a dialog component that displays network warnings. Show connection type (2g/3g/4g), file size, and explain potential issues (slow upload, data usage). Include cancel and proceed buttons. Accept props: isOpen, onClose, onProceed, fileSize, connectionType, isMetered"
-        }
-      ]
-    },
-    {
-      "id": "REQ-55",
-      "summary": "Add bottom safe area padding to BottomNavBar",
-      "acceptanceCriteria": [
-        "BottomNavBar includes padding-bottom using env(safe-area-inset-bottom)",
-        "Navigation bar items remain fully tappable above the device gesture area",
-        "Safe area padding is visually consistent with the navigation bar background"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/BottomNavBar.tsx",
-          "operation": "modify",
-          "description": "Add padding-bottom using env(safe-area-inset-bottom) to the navigation bar container. Ensure the padding extends the background color to fill the safe area and navigation items remain above the gesture area"
-        }
-      ]
-    },
-    {
-      "id": "REQ-56",
-      "summary": "Implement mobile-optimized onboarding flow with swipeable tutorial",
-      "acceptanceCriteria": [
-        "Onboarding tutorial appears after profile setup for first-time users",
-        "Tutorial consists of 3-4 swipeable cards with illustrations and brief text",
-        "User can skip tutorial or complete it to dismiss",
-        "Tutorial completion state persists in localStorage and does not show again"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/OnboardingTutorial.tsx",
-          "operation": "create",
-          "description": "Create a full-screen modal component with 3 swipeable cards explaining: (1) QR code sharing using frontend/public/assets/generated/onboarding-qr.dim_400x300.png, (2) file transfer using frontend/public/assets/generated/onboarding-transfer.dim_400x300.png, (3) AI features using frontend/public/assets/generated/onboarding-ai.dim_400x300.png. Include skip button, next/prev navigation, and done button. Use touch gestures for swiping. Store completion in localStorage as 'onboardingCompleted'"
-        },
-        {
-          "path": "frontend/src/hooks/useOnboarding.ts",
-          "operation": "create",
-          "description": "Create a custom hook that manages onboarding state. Check localStorage for 'onboardingCompleted'. Return showOnboarding boolean and completeOnboarding function that sets localStorage and updates state"
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Import useOnboarding hook and OnboardingTutorial component. Show OnboardingTutorial after successful profile setup for first-time users (when showOnboarding is true and user has profile). Pass completeOnboarding callback to tutorial"
-        }
-      ]
-    },
-    {
-      "id": "REQ-57",
-      "summary": "Add visual feedback for network requests in Header",
-      "acceptanceCriteria": [
-        "Small spinner or progress indicator appears in Header during active requests",
-        "Indicator is positioned near the app title or in the header corner",
-        "Indicator disappears when all pending requests complete",
-        "Multiple simultaneous requests show a single indicator"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useRequestIndicator.ts",
-          "operation": "create",
-          "description": "Create a custom hook that tracks pending React Query mutations and queries. Use useIsFetching and useIsMutating from @tanstack/react-query to determine if any requests are in progress. Return isLoading boolean"
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Import useRequestIndicator hook. Display a small spinner icon near the app title when isLoading is true. Position the spinner in the header corner with appropriate spacing and subtle animation"
-        }
-      ]
-    },
-    {
-      "id": "REQ-58",
-      "summary": "Implement file size limits and validation with user-friendly messages",
-      "acceptanceCriteria": [
-        "Warning toast appears when selecting files between 10MB and 50MB",
-        "Error message blocks file selection for files over 50MB",
-        "File size is validated before upload begins",
-        "Error messages explain the size limits and suggest file compression"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/fileSizeValidation.ts",
-          "operation": "create",
-          "description": "Create utility functions: validateFileSize(size: number) that returns validation result with type (ok/warning/error) and message. Warning threshold: 10MB, Error threshold: 50MB. Include helper formatFileSize(bytes: number) for display"
-        },
-        {
-          "path": "frontend/src/components/FileTransfer.tsx",
-          "operation": "modify",
-          "description": "Import validateFileSize utility. When user selects file, validate size immediately. If warning (10-50MB), show toast with file size and continue. If error (>50MB), prevent selection, show error dialog explaining 50MB limit and suggest using AI compression feature. Clear file input on error"
-        }
-      ]
-    },
-    {
-      "id": "REQ-59",
-      "summary": "Add mobile-optimized empty states for each Dashboard tab",
-      "acceptanceCriteria": [
-        "Transfer tab shows empty state with upload button when no transfers exist",
-        "History tab shows empty state encouraging first file transfer when history is empty",
-        "Users tab shows empty state when no other users are online",
-        "Each empty state includes an icon or illustration and descriptive text"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/EmptyState.tsx",
-          "operation": "create",
-          "description": "Create a reusable empty state component accepting props: imagePath, title, description, actionLabel, onAction. Display the image using the provided workspace path, centered layout with text and optional action button"
-        },
-        {
-          "path": "frontend/src/components/FileTransfer.tsx",
-          "operation": "modify",
-          "description": "Wrap the file transfer UI to show EmptyState component using frontend/public/assets/generated/empty-transfer.dim_300x200.png when no file is selected and no recent transfers exist. Include 'Select File' action button"
-        },
         {
           "path": "frontend/src/components/TransferHistory.tsx",
           "operation": "modify",
-          "description": "Show EmptyState component using frontend/public/assets/generated/empty-history.dim_300x200.png when transfer history is empty. Include message encouraging first transfer with navigation to transfer tab"
-        },
-        {
-          "path": "frontend/src/components/OnlineUsers.tsx",
-          "operation": "modify",
-          "description": "Show EmptyState component using frontend/public/assets/generated/empty-users.dim_300x200.png when no other users are online. Include descriptive text about waiting for others to come online"
+          "description": "Wire the 'Send Files' button onClick handler to trigger tab navigation. Import the haptic feedback hook (useHapticFeedback) and trigger light haptic feedback on click. Use the existing URL parameter utilities (frontend/src/utils/urlParams.ts) to programmatically set the 'tab' parameter to 'transfer', which will cause the Dashboard component to switch to the transfer tab using its existing hash-based routing mechanism."
         }
       ]
     },
     {
-      "id": "REQ-60",
-      "summary": "Implement optimistic UI updates for file transfers",
+      "id": "REQ-69",
+      "summary": "Wire 'Receive Files' button to open QRScannerModal for scanning QR codes",
       "acceptanceCriteria": [
-        "File transfer appears in history immediately upon upload start with 'pending' status",
-        "Status updates to 'completed' when backend confirms successful upload",
-        "Failed uploads show 'failed' status with retry option",
-        "Optimistic updates roll back if upload fails completely"
+        "Clicking 'Receive Files' opens the QRScannerModal",
+        "Modal uses the device camera to scan QR codes",
+        "Haptic feedback is triggered on button tap",
+        "Successful QR scan follows the existing session-based file receive workflow"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/TransferHistory.tsx",
           "operation": "modify",
-          "description": "Update useRecordTransfer mutation to use optimistic updates. On mutate, immediately add pending transfer to queryClient cache for 'transferHistory'. On success, update status to 'completed'. On error, update status to 'failed' or rollback. Include context with previous data for rollback"
-        },
-        {
-          "path": "frontend/src/components/ReceivedDownloadsList.tsx",
-          "operation": "modify",
-          "description": "Display transfer status indicator for each item. Show pending spinner for 'pending' status, success checkmark for 'completed', error icon with retry button for 'failed'. Style appropriately with colors and animations"
-        },
-        {
-          "path": "frontend/src/components/SentDownloadsList.tsx",
-          "operation": "modify",
-          "description": "Display transfer status indicator for each item. Show pending spinner for 'pending' status, success checkmark for 'completed', error icon with retry button for 'failed'. Style appropriately with colors and animations"
+          "description": "Wire the 'Receive Files' button onClick handler to open the QRScannerModal component. Add local state to control the modal open/close state. Import and use the haptic feedback hook to trigger light haptic feedback on button click. Import the QRScannerModal component (frontend/src/components/QRScannerModal.tsx) and render it conditionally based on the state. Pass appropriate props to QRScannerModal for handling scan results. The modal will use the existing qr-code/useQRScanner hook to access device camera and scan QR codes following the existing session-based file receive workflow."
         }
       ]
     }

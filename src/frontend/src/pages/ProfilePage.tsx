@@ -59,7 +59,6 @@ export default function ProfilePage() {
         avatarUrl: avatarUrl.trim(),
       });
       toast.success('Profile updated successfully');
-      navigate({ to: '/menu' });
     } catch (error: any) {
       console.error('Failed to save profile:', error);
       toast.error(error?.message || 'Failed to update profile');

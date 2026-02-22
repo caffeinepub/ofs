@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearch } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useSetOnlineStatus } from '../hooks/useQueries';
 import { useOnlineStatus } from '../utils/useOnlineStatus';
@@ -14,8 +15,22 @@ export default function Dashboard() {
   const { identity } = useInternetIdentity();
   const setOnlineStatus = useSetOnlineStatus();
   const isOnline = useOnlineStatus();
-  const [activeTab, setActiveTab] = useState<TabValue>('transfer');
+  
+  // Read tab from URL search params
+  const search = useSearch({ strict: false }) as { tab?: TabValue };
+  const initialTab = search.tab && ['transfer', 'history', 'users', 'ai'].includes(search.tab) 
+    ? search.tab 
+    : 'transfer';
+  
+  const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
   const [prefilledFile, setPrefilledFile] = useState<{ file: File; source: string } | null>(null);
+
+  // Update active tab when URL search params change
+  useEffect(() => {
+    if (search.tab && ['transfer', 'history', 'users', 'ai'].includes(search.tab)) {
+      setActiveTab(search.tab);
+    }
+  }, [search.tab]);
 
   // Set user online when component mounts and browser is online
   useEffect(() => {
