@@ -1,29 +1,23 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-22T08:31:34.082Z",
-  "summary": "The implementation successfully addresses all three requirements. Two action buttons ('Send Files' and 'Receive Files') were added to the Received tab in TransferHistory.tsx with proper navigation handlers, haptic feedback, and QR scanner modal integration. All acceptance criteria appear to be met based on the diff evidence.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-24T08:38:02.786Z",
+  "summary": "The diff shows modifications to FileTransfer.tsx that add useGetCallerUserProfile hook and display the current user's display name, and references to proper cache invalidation in useQueries.ts. However, the diff is heavily truncated, preventing full verification of REQ-89's cache invalidation implementation details.",
+  "missing_requirements": [
     {
-      "description": "Toast notification on QR code scan with session ID display",
-      "reason": "The handleSessionScanned function includes toast.success() to show a notification when a QR code is scanned. This user feedback mechanism was not requested in the BuildRequest requirements.",
+      "id": "REQ-89",
+      "requirement": "Verify that the useUpdateProfile mutation hook properly invalidates the profile query cache upon successful profile update",
+      "reason": "The diff summary for frontend/src/hooks/useQueries.ts mentions 'proper cache invalidation' but the actual file content is truncated, preventing verification that useUpdateProfile includes onSuccess/onSettled callback to invalidate the 'profile' query cache",
       "evidence": [
-        "frontend/src/components/TransferHistory.tsx"
-      ]
-    },
-    {
-      "description": "Active tab state management with useState",
-      "reason": "The component introduces activeTab state management (useState<'received' | 'sent'>('received')) to track which tab is active. While the tabs themselves existed, this explicit state management for controlling tab switching was not specified in the requirements.",
-      "evidence": [
-        "frontend/src/components/TransferHistory.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ]
     }
   ],
-  "confidence": 0.92,
+  "hallucinated_features": [],
+  "confidence": 0.75,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/TransferHistory.tsx",
+    "frontend/src/components/FileTransfer.tsx",
     "project_state.json"
   ]
 }

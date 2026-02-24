@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-transferhistory-component-frontend-src-components-transferhistory-tsx-add-two-prominent-action-buttons-labeled-send-files-and-receive-files-at-the-top-of-the-received-tab-content-area-above-the-receiveddownloadslist-component",
-      "featureTitle": "In the TransferHistory component (frontend/src/components/TransferHistory.tsx), add two prominent action buttons labeled 'Send Files' and 'Receive Files' at the top of the Received tab content area, above the ReceivedDownloadsList component",
+      "featureId": "feature-in-the-filetransfer-component-frontend-src-components-filetransfer-tsx-ensure-that-when-a-new-user-completes-their-profile-setup-and-saves-their-display-name-via-the-profilepage-the-filetransfer-component-immediately-reflects-the-updated-display-name-without-requiring-a-page-refresh-or-manual-navigation",
+      "featureTitle": "In the FileTransfer component (frontend/src/components/FileTransfer.tsx), ensure that when a new user completes their profile setup and saves their display name via the ProfilePage, the FileTransfer component immediately reflects the updated display name without requiring a page refresh or manual navigation.",
       "files": [
-        "frontend/src/components/TransferHistory.tsx"
+        "frontend/src/components/FileTransfer.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,51 +19,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-67"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-wire-the-send-files-button-click-handler-to-switch-the-active-dashboard-tab-to-transfer-programmatically-navigating-the-user-to-the-file-transfer-interface",
-      "featureTitle": "Wire the 'Send Files' button click handler to switch the active Dashboard tab to 'transfer', programmatically navigating the user to the file transfer interface",
-      "files": [
-        "frontend/src/components/TransferHistory.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "camera@1.0.0",
-        "qr-code@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-68"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-wire-the-receive-files-button-click-handler-to-open-the-qr-scanner-modal-qrscannermodal-component-allowing-users-to-scan-qr-codes-to-receive-files",
-      "featureTitle": "Wire the 'Receive Files' button click handler to open the QR scanner modal (QRScannerModal component), allowing users to scan QR codes to receive files",
-      "files": [
-        "frontend/src/components/TransferHistory.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "camera@1.0.0",
-        "qr-code@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-69"
+        "REQ-88"
       ],
       "confidence": "high"
     }

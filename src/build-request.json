@@ -1,65 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Add send and receive buttons to the Receive tab",
+  "title": "Display user's display name on Transfer dashboard after profile save",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-67",
-      "text": "In the TransferHistory component (frontend/src/components/TransferHistory.tsx), add two prominent action buttons labeled 'Send Files' and 'Receive Files' at the top of the Received tab content area, above the ReceivedDownloadsList component",
+      "id": "REQ-88",
+      "text": "In the FileTransfer component (frontend/src/components/FileTransfer.tsx), ensure that when a new user completes their profile setup and saves their display name via the ProfilePage, the FileTransfer component immediately reflects the updated display name without requiring a page refresh or manual navigation.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-latest"
+        ],
+        "quotes": [
+          "When a new user save his data show his name of transfer dashboard"
         ]
       },
       "acceptanceCriteria": [
-        "Two buttons are displayed at the top of the Received tab",
-        "Buttons are labeled 'Send Files' and 'Receive Files'",
-        "Buttons are touch-friendly (minimum 44x44px) and visually distinct",
-        "Buttons maintain the mobile-optimized design language of the app"
+        "After a user saves their profile with a display name on the ProfilePage, the display name appears on the Transfer dashboard (FileTransfer component) immediately",
+        "The display name is fetched using the existing useProfile query hook which should automatically refetch after profile updates",
+        "If the profile query is not automatically invalidated after profile save, add cache invalidation to ensure the FileTransfer component receives the updated profile data",
+        "The display name is prominently displayed at the top of the Transfer screen, above the file selection area (as per existing feature IF-102)"
       ]
     },
     {
-      "id": "REQ-68",
-      "text": "Wire the 'Send Files' button click handler to switch the active Dashboard tab to 'transfer', programmatically navigating the user to the file transfer interface",
+      "id": "REQ-89",
+      "text": "Verify that the useUpdateProfile mutation hook in frontend/src/hooks/useQueries.ts properly invalidates the profile query cache upon successful profile update, ensuring all components using useProfile receive the updated data immediately.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-latest"
+        ],
+        "quotes": [
+          "When a new user save his data show his name of transfer dashboard"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking 'Send Files' navigates to the Transfer tab in the Dashboard",
-        "Navigation uses the existing tab switching mechanism (URL hash or state management)",
-        "Haptic feedback is triggered on button tap"
-      ]
-    },
-    {
-      "id": "REQ-69",
-      "text": "Wire the 'Receive Files' button click handler to open the QR scanner modal (QRScannerModal component), allowing users to scan QR codes to receive files",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Clicking 'Receive Files' opens the QRScannerModal",
-        "Modal uses the device camera to scan QR codes",
-        "Haptic feedback is triggered on button tap",
-        "Successful QR scan follows the existing session-based file receive workflow"
+        "The useUpdateProfile mutation includes onSuccess or onSettled callback that invalidates the 'profile' query cache",
+        "After profile save, all components using useProfile hook (including FileTransfer) receive the updated profile data without manual refetch",
+        "Cache invalidation works correctly when navigating from ProfilePage to Dashboard Transfer tab"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the existing ReceivedDownloadsList component functionality",
-    "Maintain consistency with the mobile-first design patterns used throughout the app",
-    "Use existing QR scanner modal and tab navigation mechanisms"
+    "Do not modify the backend profile storage logic or API",
+    "Maintain the existing useProfile and useUpdateProfile hook patterns",
+    "Do not change the profile update flow in ProfilePage component",
+    "Preserve the existing display name rendering logic in FileTransfer component"
   ],
   "nonGoals": [
-    "Adding send/receive buttons to other tabs",
-    "Changing the existing file download or transfer workflows",
-    "Modifying the QR code scanning implementation"
+    "Adding new profile fields beyond display name and avatar URL",
+    "Changing the ProfilePage UI or validation logic",
+    "Modifying the backend profile data model",
+    "Adding real-time profile synchronization across multiple devices"
   ],
   "imageRequirements": {
     "required": [],

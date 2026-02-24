@@ -1,55 +1,38 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add send and receive buttons to the Receive tab",
+  "title": "Display user's display name on Transfer dashboard after profile save",
   "requirements": [
     {
-      "id": "REQ-67",
-      "summary": "Add 'Send Files' and 'Receive Files' action buttons at the top of the Received tab in TransferHistory component",
+      "id": "REQ-88",
+      "summary": "Ensure FileTransfer component reflects updated display name immediately after profile save",
       "acceptanceCriteria": [
-        "Two buttons are displayed at the top of the Received tab",
-        "Buttons are labeled 'Send Files' and 'Receive Files'",
-        "Buttons are touch-friendly (minimum 44x44px) and visually distinct",
-        "Buttons maintain the mobile-optimized design language of the app"
+        "After a user saves their profile with a display name on the ProfilePage, the display name appears on the Transfer dashboard (FileTransfer component) immediately",
+        "The display name is fetched using the existing useProfile query hook which should automatically refetch after profile updates",
+        "If the profile query is not automatically invalidated after profile save, add cache invalidation to ensure the FileTransfer component receives the updated profile data",
+        "The display name is prominently displayed at the top of the Transfer screen, above the file selection area (as per existing feature IF-102)"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/TransferHistory.tsx",
+          "path": "frontend/src/components/FileTransfer.tsx",
           "operation": "modify",
-          "description": "Add two prominent action buttons labeled 'Send Files' and 'Receive Files' at the top of the Received tab content area, positioned above the ReceivedDownloadsList component. Use shadcn/ui Button component with appropriate styling (minimum 44x44px touch target, rounded corners, and consistent with app's mobile-first design). Wrap buttons in a flex container with proper spacing. These buttons should only appear when the activeTab is 'received'."
+          "description": "Verify that the FileTransfer component correctly uses the useProfile hook to fetch and display the user's display name. Ensure the component renders the display name prominently at the top of the transfer screen. The component should automatically receive updated profile data when the query cache is invalidated by the useUpdateProfile mutation."
         }
       ]
     },
     {
-      "id": "REQ-68",
-      "summary": "Wire 'Send Files' button to switch Dashboard tab to 'transfer' programmatically",
+      "id": "REQ-89",
+      "summary": "Add query cache invalidation to useUpdateProfile mutation for automatic profile data refresh",
       "acceptanceCriteria": [
-        "Clicking 'Send Files' navigates to the Transfer tab in the Dashboard",
-        "Navigation uses the existing tab switching mechanism (URL hash or state management)",
-        "Haptic feedback is triggered on button tap"
+        "The useUpdateProfile mutation includes onSuccess or onSettled callback that invalidates the 'profile' query cache",
+        "After profile save, all components using useProfile hook (including FileTransfer) receive the updated profile data without manual refetch",
+        "Cache invalidation works correctly when navigating from ProfilePage to Dashboard Transfer tab"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/TransferHistory.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Wire the 'Send Files' button onClick handler to trigger tab navigation. Import the haptic feedback hook (useHapticFeedback) and trigger light haptic feedback on click. Use the existing URL parameter utilities (frontend/src/utils/urlParams.ts) to programmatically set the 'tab' parameter to 'transfer', which will cause the Dashboard component to switch to the transfer tab using its existing hash-based routing mechanism."
-        }
-      ]
-    },
-    {
-      "id": "REQ-69",
-      "summary": "Wire 'Receive Files' button to open QRScannerModal for scanning QR codes",
-      "acceptanceCriteria": [
-        "Clicking 'Receive Files' opens the QRScannerModal",
-        "Modal uses the device camera to scan QR codes",
-        "Haptic feedback is triggered on button tap",
-        "Successful QR scan follows the existing session-based file receive workflow"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/TransferHistory.tsx",
-          "operation": "modify",
-          "description": "Wire the 'Receive Files' button onClick handler to open the QRScannerModal component. Add local state to control the modal open/close state. Import and use the haptic feedback hook to trigger light haptic feedback on button click. Import the QRScannerModal component (frontend/src/components/QRScannerModal.tsx) and render it conditionally based on the state. Pass appropriate props to QRScannerModal for handling scan results. The modal will use the existing qr-code/useQRScanner hook to access device camera and scan QR codes following the existing session-based file receive workflow."
+          "description": "Modify the useUpdateProfile mutation to include an onSuccess callback that invalidates the 'currentUserProfile' query cache using queryClient.invalidateQueries. This ensures that all components using the useProfile hook (including FileTransfer) automatically receive the updated profile data after a successful profile save. Verify that the mutation properly handles the cache invalidation to trigger immediate refetching across the application."
         }
       ]
     }

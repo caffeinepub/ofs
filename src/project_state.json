@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 110,
+  "projectStateVersion": 118,
   "summary": "OFS is a web-based “wireless file sharing” application built on the Internet Computer. Users authenticate via Internet Identity, create a basic profile, appear in an online-users list, and can upload/share files. The backend (Motoko canister) stores user profiles, file metadata + blob payloads, transfer records, AI-processing audit records, and time-limited QR-code sharing sessions. The frontend (React + TanStack React Query + Tailwind/shadcn UI) provides a tabbed dashboard for file transfer, transfer history, online users, and “AI features” (client-side image compression + client-side file type/metadata recognition) with results recorded to the canister. A QR workflow exists to create a share session for a file and to scan QR codes via camera (jsQR) to fetch file metadata by session ID. The app also includes an installable PWA/offline mode with an Offline dashboard and client-side utilities to package/share files locally (device download/save) without requiring canister connectivity.",
   "architectural_notes": [
     "Internet Identity integration wrapped in a React Context provider with persisted identity loading on startup and explicit login/logout handling.",
@@ -745,6 +745,30 @@
         "REQ-69"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-in-the-filetransfer-component-frontend-src-components-filetransfer-tsx-fetch-the-current-user-s-profile-data-using-the-existing-useprofile-query-hook-to-retrieve-the-user-s-display-name",
+      "title": "In the FileTransfer component (frontend/src/components/FileTransfer.tsx), fetch the current user's profile data using the existing useProfile query hook to retrieve the user's display name",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-filetransfer-component-frontend-src-components-filetransfer-tsx-display-the-current-user-s-display-name-in-a-prominent-location-at-the-top-of-the-transfer-screen-above-the-file-selection-area",
+      "title": "In the FileTransfer component (frontend/src/components/FileTransfer.tsx), display the current user's display name in a prominent location at the top of the Transfer screen, above the file selection area",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-filetransfer-component-frontend-src-components-filetransfer-tsx-ensure-that-when-a-new-user-completes-their-profile-setup-and-saves-their-display-name-via-the-profilepage-the-filetransfer-component-immediately-reflects-the-updated-display-name-without-requiring-a-page-refresh-or-manual-navigation",
+      "title": "In the FileTransfer component (frontend/src/components/FileTransfer.tsx), ensure that when a new user completes their profile setup and saves their display name via the ProfilePage, the FileTransfer component immediately reflects the updated display name without requiring a page refresh or manual navigation.",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -784,6 +808,148 @@
       "id": "AR-5",
       "summary": "Add send and receive buttons to the Receive tab in the Downloads section of the Dashboard",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Transform OFS into a fully mobile-optimized web application with touch-friendly interfaces and mobile-first design patterns",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Convert the existing React web application into a React Native mobile application, migrating all UI components to React Native equivalents (View, Text, TouchableOpacity, ScrollView, etc.) while preserving existing functionality",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Replace Tailwind CSS styling with React Native StyleSheet API, converting all className-based styles to style props with equivalent layouts and visual design",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Implement native camera access for QR code scanning using react-native-camera or expo-camera, replacing the web-based jsQR implementation",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Replace browser-based file picker with native document picker using react-native-document-picker for file selection in the FileTransfer component",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Implement native file downloads using react-native-fs to save received files to device storage with proper permissions handling",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Replace Internet Identity authentication with a mobile-appropriate authentication method (biometric authentication, secure storage, or mobile-optimized II flow)",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Implement native sharing functionality using react-native-share to replace the Web Share API for sharing files with other apps",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Convert service worker and PWA functionality to native background services and offline data persistence using AsyncStorage or realm",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Set up React Native project configuration with proper iOS (Xcode project) and Android (Gradle) build configurations for app store deployment",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Implement native haptic feedback using react-native-haptic-feedback or Haptics API, replacing Vibration API calls throughout the application",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Replace React Query HTTP transport with a React Native-compatible HTTP client (using fetch or axios) that properly handles IC canister communication",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Implement native navigation using React Navigation with stack and tab navigators, replacing TanStack Router and converting all route definitions",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Configure app permissions in Info.plist (iOS) and AndroidManifest.xml (Android) for camera, storage, and network access",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "In the TransferHistory component (frontend/src/components/TransferHistory.tsx), verify that the two action buttons labeled 'Send Files' and 'Receive Files' are present at the top of the Received tab content area, above the ReceivedDownloadsList component. If they are missing or not functioning correctly, add or restore them.",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "In the TransferHistory component, ensure the 'Send Files' button click handler switches the active Dashboard tab to 'transfer', programmatically navigating the user to the file transfer interface.",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "In the TransferHistory component, ensure the 'Receive Files' button click handler opens the QR scanner modal (QRScannerModal component), allowing users to scan QR codes to receive files.",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Verify that the useUpdateProfile mutation hook in frontend/src/hooks/useQueries.ts properly invalidates the profile query cache upon successful profile update, ensuring all components using useProfile receive the updated data immediately.",
+      "reqIds": [
+        "REQ-89"
+      ],
       "status": "pending"
     }
   ],

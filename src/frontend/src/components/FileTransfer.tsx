@@ -314,6 +314,11 @@ export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTra
       <div className="space-y-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">File Transfer</h2>
+          {currentUserProfile?.displayName && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Sending as <span className="font-medium text-foreground">{currentUserProfile.displayName}</span>
+            </p>
+          )}
           <p className="text-sm text-muted-foreground">Send files to online users</p>
         </div>
 

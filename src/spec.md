@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add send and receive action buttons to the Receive tab for quick access to file transfer and QR scanning.
+**Goal:** Display the user's display name on the Transfer dashboard immediately after they save their profile, without requiring a page refresh.
 
 **Planned changes:**
-- Add two prominent buttons labeled "Send Files" and "Receive Files" at the top of the Received tab in the TransferHistory component
-- Wire "Send Files" button to navigate to the Transfer tab
-- Wire "Receive Files" button to open the QR scanner modal
+- Ensure the useUpdateProfile mutation invalidates the profile query cache after successful profile updates
+- Verify the FileTransfer component automatically receives updated profile data via the useProfile hook
+- Confirm the display name appears on the Transfer dashboard immediately after profile save
 
-**User-visible outcome:** Users can quickly send files or receive files via QR code scanning directly from the Receive tab without navigating through the UI manually.
+**User-visible outcome:** When a new user saves their display name on the Profile page, they will see their name appear on the Transfer dashboard instantly without needing to refresh or navigate away.
