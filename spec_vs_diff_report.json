@@ -1,0 +1,26 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-24T09:33:08.004Z",
+  "summary": "The diff implements most requirements by removing principal ID displays and avatar URL inputs from ProfilePage and MobileMenu, and replacing avatar images with initials in OnlineUsers and MobileMenu. However, REQ-97 is only partially fulfilled because avatar removal in the ProfilePage component itself and any header user menu is not evident in the truncated diff.",
+  "missing_requirements": [
+    {
+      "id": "REQ-97",
+      "requirement": "If avatar images are currently displayed in any profile-related UI components (ProfilePage, MobileMenu, Header user menu), remove the avatar image rendering and replace with display name initials or a simple placeholder icon.",
+      "reason": "The diff shows avatar image removal and initials replacement in OnlineUsers.tsx and MobileMenu.tsx, but ProfilePage.tsx is truncated and does not show any avatar display or removal logic. The Header component (mentioned in AC) is not modified in the diff, so it's unclear if avatars exist there or have been addressed.",
+      "evidence": [
+        "frontend/src/pages/ProfilePage.tsx",
+        "frontend/src/components/Header.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [],
+  "confidence": 0.75,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/OnlineUsers.tsx",
+    "frontend/src/pages/MobileMenu.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
+    "project_state.json"
+  ]
+}

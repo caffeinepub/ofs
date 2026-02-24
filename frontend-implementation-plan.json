@@ -1,0 +1,87 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Remove principal ID and avatar option from profile interface",
+  "requirements": [
+    {
+      "id": "REQ-94",
+      "summary": "Remove principal ID display field/section from ProfilePage component",
+      "acceptanceCriteria": [
+        "Principal ID is no longer visible in the ProfilePage UI",
+        "Any labels, text fields, or copy buttons related to principal ID are removed",
+        "Profile page layout adjusts properly without the principal ID section"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Remove the principal ID display section including any labels, copy buttons, or text fields that show the user's Internet Identity principal. Ensure the layout remains visually balanced after removal."
+        }
+      ]
+    },
+    {
+      "id": "REQ-95",
+      "summary": "Remove avatar URL input field and related UI elements from ProfilePage",
+      "acceptanceCriteria": [
+        "Avatar URL input field is removed from the profile form",
+        "Avatar-related labels, placeholders, and helper text are removed",
+        "Profile form no longer sends or updates avatar data when saving changes",
+        "Form validation and submission logic handles the absence of avatar field correctly"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Remove the avatar URL input field and all related UI elements (labels, placeholders, helper text). Update the profile update mutation call to exclude avatarUrl from the payload. Ensure form validation and submission logic work correctly without the avatar field."
+        }
+      ]
+    },
+    {
+      "id": "REQ-96",
+      "summary": "Remove principal ID display from MobileMenu profile section",
+      "acceptanceCriteria": [
+        "Principal ID is not shown in the mobile menu profile section",
+        "User profile display in mobile menu shows only display name",
+        "Layout remains visually balanced without principal ID"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/MobileMenu.tsx",
+          "operation": "modify",
+          "description": "Remove any principal ID display from the profile section in the mobile menu. Ensure only the display name is shown and that the layout remains visually balanced."
+        }
+      ]
+    },
+    {
+      "id": "REQ-97",
+      "summary": "Replace avatar images with display name initials or placeholder icons",
+      "acceptanceCriteria": [
+        "Avatar images are no longer fetched or displayed from avatar URLs",
+        "Profile displays use initials or placeholder icons instead of custom avatars",
+        "All avatar-related image loading logic is removed or disabled"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Replace any avatar image rendering with display name initials or a simple placeholder icon. Remove avatar image fetching and loading logic."
+        },
+        {
+          "path": "frontend/src/pages/MobileMenu.tsx",
+          "operation": "modify",
+          "description": "Replace any avatar image rendering with display name initials or a simple placeholder icon. Remove avatar image fetching and loading logic."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "If the Header displays user avatar in any menu or profile button, replace it with display name initials or a placeholder icon. Remove avatar image loading logic."
+        },
+        {
+          "path": "frontend/src/components/OnlineUsers.tsx",
+          "operation": "modify",
+          "description": "Replace avatar images in the online users list with display name initials or placeholder icons. Remove avatar-related image loading logic while preserving the rest of the online users display functionality."
+        }
+      ]
+    }
+  ]
+}

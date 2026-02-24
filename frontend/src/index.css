@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: oklch(100% 0 0);
+    --foreground: oklch(15% 0 0);
+    --card: oklch(100% 0 0);
+    --card-foreground: oklch(15% 0 0);
+    --popover: oklch(100% 0 0);
+    --popover-foreground: oklch(15% 0 0);
+    --primary: oklch(62% 0.22 35);
+    --primary-foreground: oklch(100% 0 0);
+    --secondary: oklch(95% 0.01 35);
+    --secondary-foreground: oklch(15% 0 0);
+    --muted: oklch(95% 0.01 35);
+    --muted-foreground: oklch(45% 0.01 35);
+    --accent: oklch(85% 0.08 75);
+    --accent-foreground: oklch(15% 0 0);
+    --destructive: oklch(55% 0.22 25);
+    --destructive-foreground: oklch(100% 0 0);
+    --border: oklch(90% 0.01 35);
+    --input: oklch(90% 0.01 35);
+    --ring: oklch(62% 0.22 35);
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: oklch(15% 0.01 35);
+    --foreground: oklch(98% 0 0);
+    --card: oklch(18% 0.01 35);
+    --card-foreground: oklch(98% 0 0);
+    --popover: oklch(18% 0.01 35);
+    --popover-foreground: oklch(98% 0 0);
+    --primary: oklch(68% 0.20 35);
+    --primary-foreground: oklch(15% 0 0);
+    --secondary: oklch(25% 0.02 35);
+    --secondary-foreground: oklch(98% 0 0);
+    --muted: oklch(25% 0.02 35);
+    --muted-foreground: oklch(65% 0.01 35);
+    --accent: oklch(35% 0.10 75);
+    --accent-foreground: oklch(98% 0 0);
+    --destructive: oklch(60% 0.20 25);
+    --destructive-foreground: oklch(98% 0 0);
+    --border: oklch(25% 0.02 35);
+    --input: oklch(25% 0.02 35);
+    --ring: oklch(68% 0.20 35);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Modal z-index layering system */
+@layer components {
+  /* Base layer for file selection dialogs */
+  [data-radix-dialog-overlay] {
+    z-index: 40;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  [data-radix-dialog-content] {
+    z-index: 40;
+  }
+  
+  /* Middle layer for navigation drawer with enhanced backdrop */
+  [data-radix-sheet-overlay] {
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(4px);
+  }
+  
+  [data-radix-sheet-content] {
+    z-index: 50;
+  }
+  
+  /* Top layer for profile dialog - override with inline styles */
+  .z-\[100\] {
+    z-index: 100 !important;
+  }
+  
+  /* Ensure profile dialog overlay is also on top */
+  [data-radix-dialog-overlay].z-\[100\] {
+    z-index: 100 !important;
+  }
+}

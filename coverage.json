@@ -1,0 +1,77 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-24T09:33:08.010Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 4,
+    "implemented": 4,
+    "items": [
+      {
+        "id": "REQ-94",
+        "summary": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), remove the principal ID display field/section that shows the user's Internet Identity principal.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ProfilePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ProfilePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-95",
+        "summary": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), remove the avatar URL input field and any related UI elements for avatar configuration.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ProfilePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ProfilePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-96",
+        "summary": "In the MobileMenu component (frontend/src/pages/MobileMenu.tsx), if the user's principal ID is displayed in the profile section, remove it from the UI.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/MobileMenu.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/MobileMenu.tsx"
+        ]
+      },
+      {
+        "id": "REQ-97",
+        "summary": "If avatar images are currently displayed in any profile-related UI components (ProfilePage, MobileMenu, Header user menu), remove the avatar image rendering and replace with display name initials or a simple placeholder icon.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/pages/MobileMenu.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/OnlineUsers.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/pages/MobileMenu.tsx",
+          "frontend/src/components/OnlineUsers.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/OnlineUsers.tsx",
+    "frontend/src/pages/MobileMenu.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

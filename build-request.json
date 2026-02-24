@@ -1,0 +1,94 @@
+{
+  "kind": "build_request",
+  "title": "Remove principal ID and avatar option from profile interface",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-94",
+      "text": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), remove the principal ID display field/section that shows the user's Internet Identity principal.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "Remove principal id and avtar option from profile button"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Principal ID is no longer visible in the ProfilePage UI",
+        "Any labels, text fields, or copy buttons related to principal ID are removed",
+        "Profile page layout adjusts properly without the principal ID section"
+      ]
+    },
+    {
+      "id": "REQ-95",
+      "text": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), remove the avatar URL input field and any related UI elements for avatar configuration.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "Remove principal id and avtar option from profile button"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Avatar URL input field is removed from the profile form",
+        "Avatar-related labels, placeholders, and helper text are removed",
+        "Profile form no longer sends or updates avatar data when saving changes",
+        "Form validation and submission logic handles the absence of avatar field correctly"
+      ]
+    },
+    {
+      "id": "REQ-96",
+      "text": "In the MobileMenu component (frontend/src/pages/MobileMenu.tsx), if the user's principal ID is displayed in the profile section, remove it from the UI.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "Remove principal id and avtar option from profile button"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Principal ID is not shown in the mobile menu profile section",
+        "User profile display in mobile menu shows only display name",
+        "Layout remains visually balanced without principal ID"
+      ]
+    },
+    {
+      "id": "REQ-97",
+      "text": "If avatar images are currently displayed in any profile-related UI components (ProfilePage, MobileMenu, Header user menu), remove the avatar image rendering and replace with display name initials or a simple placeholder icon.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "Remove principal id and avtar option from profile button"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Avatar images are no longer fetched or displayed from avatar URLs",
+        "Profile displays use initials or placeholder icons instead of custom avatars",
+        "All avatar-related image loading logic is removed or disabled"
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify backend profile data structure; only change frontend UI rendering",
+    "Preserve all other profile functionality (display name editing, orientation lock toggle)",
+    "Maintain existing profile update mutation logic for remaining fields"
+  ],
+  "nonGoals": [
+    "Removing avatar data from backend storage or API",
+    "Changing how avatars work in OnlineUsers list or other user display contexts",
+    "Modifying authentication or identity management"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
