@@ -30,6 +30,15 @@ export interface FileMetadata {
   'uploadTime' : Time,
 }
 export type Time = bigint;
+export interface TransferRecord {
+  'id' : string,
+  'transferTime' : Time,
+  'file' : FileMetadata,
+  'sender' : Principal,
+  'success' : boolean,
+  'receiver' : Principal,
+  'transferDuration' : bigint,
+}
 export interface TransferRecordData {
   'id' : string,
   'transferTime' : Time,
@@ -84,6 +93,7 @@ export interface _SERVICE {
   'getFileMetadata' : ActorMethod<[string], FileMetadata>,
   'getOnlineUsers' : ActorMethod<[], Array<Principal>>,
   'getTransferHistory' : ActorMethod<[Principal], Array<TransferRecordData>>,
+  'getTransferRecord' : ActorMethod<[string], [] | [TransferRecord]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'recordAIProcessing' : ActorMethod<

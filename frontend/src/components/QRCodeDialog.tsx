@@ -1,131 +1,192 @@
-import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2 } from 'lucide-react';
 import { encodeQRPayload } from '../utils/qrPayload';
-import { toast } from 'sonner';
+import { Clock, AlertCircle, QrCode } from 'lucide-react';
 
 interface QRCodeDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   sessionId: string;
-  expirySeconds?: number;
+  fileName?: string;
 }
 
-export default function QRCodeDialog({ open, onOpenChange, sessionId, expirySeconds = 300 }: QRCodeDialogProps) {
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(expirySeconds);
-  const [isGenerating, setIsGenerating] = useState(false);
+const QR_EXPIRY_SECONDS = 300;
+
+function useQRCanvas(text: string, size: number) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [dataUrl, setDataUrl] = useState<string>('');
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!open) {
-      setQrDataUrl(null);
-      setTimeLeft(expirySeconds);
+    if (!text) {
+      setDataUrl('');
+      setError(false);
       return;
     }
+    setError(false);
+    setDataUrl('');
 
-    const generateQR = async () => {
-      setIsGenerating(true);
-      try {
-        const QRCode = (window as any).QRCode;
-        if (!QRCode) {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-          script.async = true;
-          document.body.appendChild(script);
-          await new Promise((resolve) => {
-            script.onload = resolve;
-          });
+    const encoded = encodeURIComponent(text);
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&format=png&margin=10`;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, size, size);
+          setDataUrl(canvas.toDataURL('image/png'));
         }
-
-        const deepLink = encodeQRPayload(sessionId);
-        const canvas = document.createElement('canvas');
-        await (window as any).QRCode.toCanvas(canvas, deepLink, {
-          width: 300,
-          margin: 2,
-          color: {
-            dark: '#000000',
-            light: '#ffffff',
-          },
-        });
-
-        setQrDataUrl(canvas.toDataURL());
-      } catch (error) {
-        console.error('Failed to generate QR code:', error);
-        toast.error('Failed to generate QR code');
-      } finally {
-        setIsGenerating(false);
       }
     };
+    img.onerror = () => {
+      setError(true);
+    };
+    img.src = url;
+  }, [text, size]);
 
-    generateQR();
+  return { canvasRef, dataUrl, error };
+}
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
+export default function QRCodeDialog({ open, onClose, sessionId, fileName }: QRCodeDialogProps) {
+  const [secondsLeft, setSecondsLeft] = useState(QR_EXPIRY_SECONDS);
+  const [expired, setExpired] = useState(false);
+  const payload = open ? encodeQRPayload(sessionId) : '';
+  const { canvasRef, dataUrl, error } = useQRCanvas(payload, 280);
+
+  // Reset timer when dialog opens
+  useEffect(() => {
+    if (open) {
+      setSecondsLeft(QR_EXPIRY_SECONDS);
+      setExpired(false);
+    }
+  }, [open]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!open || expired) return;
+
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timer);
-          onOpenChange(false);
-          toast.error('QR code expired');
+          setExpired(true);
+          clearInterval(interval);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [open, sessionId, expirySeconds, onOpenChange]);
+    return () => clearInterval(interval);
+  }, [open, expired]);
 
-  const handleDownload = () => {
-    if (!qrDataUrl) return;
-
-    const link = document.createElement('a');
-    link.href = qrDataUrl;
-    link.download = `qr-code-${sessionId}.png`;
-    link.click();
-    toast.success('QR code downloaded');
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+  const timeDisplay = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const progressPercent = (secondsLeft / QR_EXPIRY_SECONDS) * 100;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-w-[90vw]">
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="mx-4 rounded-2xl max-w-sm">
         <DialogHeader>
-          <DialogTitle>Scan QR Code</DialogTitle>
-          <DialogDescription>
-            Scan this code with another device to receive the file
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <QrCode className="w-5 h-5 text-primary" />
+            Share via QR Code
+          </DialogTitle>
+          {fileName && (
+            <DialogDescription className="text-sm truncate">
+              {fileName}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
-        <div className="flex flex-col items-center gap-4 py-4">
-          {isGenerating ? (
-            <div className="flex h-[300px] w-[300px] items-center justify-center bg-muted rounded-lg">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center gap-4 py-2">
+          {/* Hidden canvas for rendering */}
+          <canvas ref={canvasRef} className="hidden" />
+
+          {expired ? (
+            <div className="w-[280px] h-[280px] rounded-xl bg-muted flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border">
+              <AlertCircle className="w-12 h-12 text-destructive" />
+              <p className="text-destructive font-semibold text-base">QR Code Expired</p>
+              <p className="text-muted-foreground text-sm text-center px-4">
+                This QR code has expired. Close and try again.
+              </p>
             </div>
-          ) : qrDataUrl ? (
-            <div className="rounded-lg border-4 border-border p-2 bg-white">
-              <img src={qrDataUrl} alt="QR Code" className="w-full h-auto" style={{ maxWidth: '300px' }} />
+          ) : error ? (
+            <div className="w-[280px] h-[280px] rounded-xl bg-muted flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border">
+              <AlertCircle className="w-10 h-10 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm text-center px-4">
+                Could not generate QR code. Check your internet connection.
+              </p>
+              <p className="text-xs text-muted-foreground font-mono break-all px-4 text-center">
+                Session: {sessionId.slice(0, 16)}...
+              </p>
             </div>
+          ) : dataUrl ? (
+            <img
+              src={dataUrl}
+              alt="QR Code"
+              className="w-[280px] h-[280px] rounded-xl border border-border"
+            />
           ) : (
-            <div className="flex h-[300px] w-[300px] items-center justify-center bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">Failed to generate QR code</p>
+            <div className="w-[280px] h-[280px] rounded-xl bg-muted flex items-center justify-center border border-border">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-muted-foreground text-sm">Generating QR code...</p>
+              </div>
             </div>
           )}
 
-          <div className="text-center">
-            <p className="text-sm font-medium">Expires in {formatTime(timeLeft)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Session ID: {sessionId.slice(0, 8)}...</p>
-          </div>
+          {/* Timer */}
+          {!expired && (
+            <div className="w-full space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>Expires in</span>
+                </div>
+                <span
+                  className={`font-mono font-semibold ${
+                    secondsLeft < 60 ? 'text-destructive' : 'text-foreground'
+                  }`}
+                >
+                  {timeDisplay}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ${
+                    secondsLeft < 60 ? 'bg-destructive' : 'bg-primary'
+                  }`}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
 
-          <Button onClick={handleDownload} disabled={!qrDataUrl} variant="outline" className="w-full h-12">
-            <Download className="mr-2 h-4 w-4" />
-            Download QR Code
-          </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            Ask the receiver to scan this QR code to receive the file
+          </p>
         </div>
+
+        <Button
+          variant="outline"
+          onClick={onClose}
+          className="w-full h-12 text-base rounded-xl"
+        >
+          Close
+        </Button>
       </DialogContent>
     </Dialog>
   );

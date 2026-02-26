@@ -1,3 +1,4 @@
+import React from 'react';
 import { Send, History, Users, Sparkles } from 'lucide-react';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
 
@@ -8,42 +9,59 @@ interface BottomNavBarProps {
   onTabChange: (tab: TabValue) => void;
 }
 
+const tabs: { id: TabValue; label: string; icon: React.ElementType }[] = [
+  { id: 'transfer', label: 'Transfer', icon: Send },
+  { id: 'history', label: 'History', icon: History },
+  { id: 'users', label: 'Users', icon: Users },
+  { id: 'ai', label: 'AI', icon: Sparkles },
+];
+
 export default function BottomNavBar({ activeTab, onTabChange }: BottomNavBarProps) {
   const { triggerLight } = useHapticFeedback();
 
-  const tabs = [
-    { value: 'transfer' as TabValue, label: 'Transfer', icon: Send },
-    { value: 'history' as TabValue, label: 'History', icon: History },
-    { value: 'users' as TabValue, label: 'Users', icon: Users },
-    { value: 'ai' as TabValue, label: 'AI', icon: Sparkles },
-  ];
-
-  const handleTabClick = (tab: TabValue) => {
+  const handleTabClick = (tabId: TabValue) => {
     triggerLight();
-    onTabChange(tab);
+    onTabChange(tabId);
   };
 
   return (
-    <nav 
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="flex items-center justify-around px-2 py-2">
-        {tabs.map(({ value, label, icon: Icon }) => {
-          const isActive = activeTab === value;
+      <div className="flex items-stretch">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+
           return (
             <button
-              key={value}
-              onClick={() => handleTabClick(value)}
-              className={`flex min-w-[60px] flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-colors ${
-                isActive
+              key={tab.id}
+              onClick={() => handleTabClick(tab.id)}
+              className={`
+                flex-1 flex flex-col items-center justify-center gap-1
+                min-h-[56px] py-2 px-1
+                transition-colors duration-150
+                ${isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
-              style={{ minHeight: '44px', minWidth: '44px' }}
+                }
+              `}
+              aria-label={tab.label}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className={`h-5 w-5 ${isActive ? 'fill-primary/20' : ''}`} />
-              <span className="text-xs font-medium">{label}</span>
+              <Icon
+                size={26}
+                strokeWidth={isActive ? 2.5 : 1.8}
+                className="shrink-0"
+              />
+              <span
+                className={`text-[13px] leading-tight tracking-tight ${
+                  isActive ? 'font-semibold' : 'font-medium'
+                }`}
+              >
+                {tab.label}
+              </span>
             </button>
           );
         })}

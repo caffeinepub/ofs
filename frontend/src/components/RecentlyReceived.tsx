@@ -1,150 +1,112 @@
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import React, { useState, useCallback } from 'react';
+import { Download, FileText, Image, Film, Music, Archive } from 'lucide-react';
 import { useGetTransferHistory } from '../hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileIcon, Download, Loader2, Inbox } from 'lucide-react';
-import { format } from 'date-fns';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import type { TransferRecordData } from '../backend';
 import { downloadTransferFile } from '../utils/downloadTransferFile';
-import { toast } from 'sonner';
-import { useState } from 'react';
+import {
+  formatFileSize,
+  formatTimestamp,
+  filterReceivedTransfers,
+} from '../utils/receivedDownloads';
+
+function getFileIcon(fileType: string) {
+  if (fileType.startsWith('image/')) return Image;
+  if (fileType.startsWith('video/')) return Film;
+  if (fileType.startsWith('audio/')) return Music;
+  if (fileType.includes('zip') || fileType.includes('archive') || fileType.includes('tar')) return Archive;
+  return FileText;
+}
+
+interface FileItemProps {
+  record: TransferRecordData;
+}
+
+function FileItem({ record }: FileItemProps) {
+  const [downloading, setDownloading] = useState(false);
+  const FileIcon = getFileIcon(record.file.fileType);
+
+  const handleDownload = useCallback(async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      await downloadTransferFile(record.file.blob, record.file.name, record.file.fileType);
+    } finally {
+      setDownloading(false);
+    }
+  }, [record.file, downloading]);
+
+  return (
+    <div className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
+      {/* File icon */}
+      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+        <FileIcon size={20} className="text-primary" />
+      </div>
+
+      {/* File info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-base font-semibold text-foreground truncate">
+          {record.file.name}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {formatFileSize(record.file.size)} · {formatTimestamp(record.transferTime)}
+        </p>
+      </div>
+
+      {/* Download button */}
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        className="
+          w-10 h-10 rounded-lg
+          bg-primary/10 text-primary
+          flex items-center justify-center
+          shrink-0 transition-opacity
+          disabled:opacity-50
+          active:scale-95
+        "
+        aria-label="Download file"
+      >
+        {downloading ? (
+          <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        ) : (
+          <Download size={18} />
+        )}
+      </button>
+    </div>
+  );
+}
 
 export default function RecentlyReceived() {
   const { identity } = useInternetIdentity();
-  const { data: transferHistory, isLoading } = useGetTransferHistory(identity?.getPrincipal() || null);
-  const [downloadingFiles, setDownloadingFiles] = useState<Set<string>>(new Set());
+  const principal = identity?.getPrincipal() ?? null;
+  const { data: transfers, isLoading } = useGetTransferHistory(principal);
 
-  const currentUserPrincipal = identity?.getPrincipal().toString();
-
-  // Filter for received files only (successful transfers where current user is receiver)
-  const receivedFiles = transferHistory?.filter(
-    (record) => record.receiver.toString() === currentUserPrincipal && record.success
-  ) || [];
-
-  // Get most recent 5 received files
-  const recentFiles = receivedFiles.slice(0, 5);
-
-  const formatFileSize = (bytes: bigint) => {
-    const num = Number(bytes);
-    if (num === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(num) / Math.log(k));
-    return Math.round((num / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const handleDownload = async (recordId: string, fileName: string, fileType: string, blob: any) => {
-    setDownloadingFiles(prev => new Set(prev).add(recordId));
-    
-    try {
-      await downloadTransferFile(blob, fileName, fileType);
-      toast.success(`${fileName} saved to your device`);
-    } catch (error: any) {
-      if (error.message === 'Save cancelled') {
-        toast.info('Download cancelled');
-      } else {
-        console.error('Download error:', error);
-        toast.error('Failed to download file');
-      }
-    } finally {
-      setDownloadingFiles(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(recordId);
-        return newSet;
-      });
-    }
-  };
+  const receivedTransfers = filterReceivedTransfers(transfers || [], principal).slice(0, 5);
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Recently Received</CardTitle>
-          <CardDescription>Loading recent files...</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-2">
+        {[1, 2].map((i) => (
+          <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
+        ))}
+      </div>
     );
   }
 
-  if (recentFiles.length === 0) {
+  if (receivedTransfers.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Recently Received</CardTitle>
-          <CardDescription>Files you've received will appear here</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="rounded-full bg-muted p-4">
-              <Inbox className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <p className="mt-4 font-medium">No received files yet</p>
-            <p className="text-sm text-muted-foreground">Files sent to you will appear here</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center py-6">
+        <p className="text-base text-muted-foreground">No recent files</p>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recently Received</CardTitle>
-        <CardDescription>Your most recent received files</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {recentFiles.map((record) => {
-            const isDownloading = downloadingFiles.has(record.id);
-
-            return (
-              <div key={record.id} className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50">
-                <div className="rounded-lg bg-primary/10 p-2 flex-shrink-0">
-                  <FileIcon className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0 space-y-1">
-                  <p className="font-medium truncate">{record.file.name}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{formatFileSize(record.file.size)}</span>
-                    <span>•</span>
-                    <span>{format(new Date(Number(record.transferTime) / 1000000), 'MMM d, h:mm a')}</span>
-                  </div>
-                </div>
-                {record.file.blob && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDownload(
-                      record.id,
-                      record.file.name,
-                      record.file.fileType,
-                      record.file.blob
-                    )}
-                    disabled={isDownloading}
-                    className="flex-shrink-0"
-                  >
-                    {isDownloading ? (
-                      <>
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 h-3 w-3" />
-                        Download
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-2">
+      {receivedTransfers.map((record) => (
+        <FileItem key={record.id} record={record} />
+      ))}
+    </div>
   );
 }

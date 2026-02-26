@@ -1,20 +1,60 @@
-import { useGetOnlineUsers, useGetMultipleUserProfiles } from '../hooks/useQueries';
+import React from 'react';
+import { RefreshCw } from 'lucide-react';
+import { useGetOnlineUsers, useGetUserProfile } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import SkeletonCard from './SkeletonCard';
 import EmptyState from './EmptyState';
+import type { Principal } from '@icp-sdk/core/principal';
+
+interface UserRowProps {
+  principal: Principal;
+  currentUserPrincipal: string;
+}
+
+function UserRow({ principal, currentUserPrincipal }: UserRowProps) {
+  const { data: profile } = useGetUserProfile(principal);
+  const isCurrentUser = principal.toString() === currentUserPrincipal;
+
+  const displayName = profile?.displayName || 'Anonymous';
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
+      {/* Avatar with initials */}
+      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+        <span className="text-base font-semibold text-primary">{initials}</span>
+      </div>
+
+      {/* User info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-base font-semibold text-foreground truncate">
+            {displayName}
+          </span>
+          {isCurrentUser && (
+            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
+              You
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+          <span className="text-sm text-muted-foreground">Online</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function OnlineUsers() {
-  const { identity } = useInternetIdentity();
   const { data: onlineUsers, isLoading, refetch } = useGetOnlineUsers();
-  const currentUserPrincipal = identity?.getPrincipal().toString();
-  const availableUsers = onlineUsers?.filter((user) => user.toString() !== currentUserPrincipal) || [];
-  
-  const { data: userProfilesMap, isLoading: profilesLoading } = useGetMultipleUserProfiles(availableUsers);
+  const { identity } = useInternetIdentity();
+  const currentUserPrincipal = identity?.getPrincipal().toString() || '';
 
   const { isRefreshing, pullToRefreshProps } = usePullToRefresh({
     onRefresh: async () => {
@@ -22,66 +62,53 @@ export default function OnlineUsers() {
     },
   });
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-3 p-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Online Users</h2>
-          <p className="text-sm text-muted-foreground">Users available for file sharing</p>
+    <div className="flex flex-col h-full overflow-y-auto" {...pullToRefreshProps}>
+      {/* Pull to refresh indicator */}
+      {isRefreshing && (
+        <div className="flex items-center justify-center py-3">
+          <RefreshCw size={18} className="animate-spin text-primary" />
+          <span className="text-sm text-muted-foreground ml-2">Refreshing…</span>
         </div>
-        {isRefreshing && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <h2 className="text-xl font-bold text-foreground">Online Users</h2>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-green-500" />
+          <span className="text-sm font-medium text-muted-foreground">
+            {onlineUsers?.length ?? 0} online
+          </span>
+        </div>
       </div>
 
-      <div {...pullToRefreshProps} className="space-y-3 touch-pan-y">
-        {isLoading || profilesLoading ? (
-          <>
-            <SkeletonCard height="80px" />
-            <SkeletonCard height="80px" />
-            <SkeletonCard height="80px" />
-          </>
-        ) : availableUsers.length === 0 ? (
+      {/* Users list */}
+      <div className="flex flex-col gap-3 px-4 pb-4">
+        {!onlineUsers || onlineUsers.length === 0 ? (
           <EmptyState
             imagePath="/assets/generated/empty-users.dim_300x200.png"
             title="No users online"
-            description="Other users will appear here when they're online and available for file sharing."
+            description="You're the only one here right now. Share the app with friends to start transferring files!"
           />
         ) : (
-          availableUsers.map((principal) => {
-            const profile = userProfilesMap?.[principal.toString()];
-            return (
-              <Card key={principal.toString()} className="overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-14 w-14">
-                      <AvatarFallback className="text-lg">
-                        {profile?.displayName ? getInitials(profile.displayName) : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">
-                        {profile?.displayName || principal.toString().slice(0, 12) + '...'}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          <span className="mr-1 h-2 w-2 rounded-full bg-green-500" />
-                          Online
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
+          onlineUsers.map((principal) => (
+            <UserRow
+              key={principal.toString()}
+              principal={principal}
+              currentUserPrincipal={currentUserPrincipal}
+            />
+          ))
         )}
       </div>
     </div>

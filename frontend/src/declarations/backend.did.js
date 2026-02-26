@@ -60,6 +60,15 @@ export const TransferRecordData = IDL.Record({
   'receiver' : IDL.Principal,
   'transferDuration' : IDL.Nat,
 });
+export const TransferRecord = IDL.Record({
+  'id' : IDL.Text,
+  'transferTime' : Time,
+  'file' : FileMetadata,
+  'sender' : IDL.Principal,
+  'success' : IDL.Bool,
+  'receiver' : IDL.Principal,
+  'transferDuration' : IDL.Nat,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -112,6 +121,11 @@ export const idlService = IDL.Service({
   'getTransferHistory' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(TransferRecordData)],
+      ['query'],
+    ),
+  'getTransferRecord' : IDL.Func(
+      [IDL.Text],
+      [IDL.Opt(TransferRecord)],
       ['query'],
     ),
   'getUserProfile' : IDL.Func(
@@ -203,6 +217,15 @@ export const idlFactory = ({ IDL }) => {
     'receiver' : IDL.Principal,
     'transferDuration' : IDL.Nat,
   });
+  const TransferRecord = IDL.Record({
+    'id' : IDL.Text,
+    'transferTime' : Time,
+    'file' : FileMetadata,
+    'sender' : IDL.Principal,
+    'success' : IDL.Bool,
+    'receiver' : IDL.Principal,
+    'transferDuration' : IDL.Nat,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -255,6 +278,11 @@ export const idlFactory = ({ IDL }) => {
     'getTransferHistory' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(TransferRecordData)],
+        ['query'],
+      ),
+    'getTransferRecord' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(TransferRecord)],
         ['query'],
       ),
     'getUserProfile' : IDL.Func(

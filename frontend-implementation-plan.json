@@ -1,85 +1,49 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove principal ID and avatar option from profile interface",
+  "title": "Open QR scanner on a dedicated full-screen receive page",
   "requirements": [
     {
-      "id": "REQ-94",
-      "summary": "Remove principal ID display field/section from ProfilePage component",
+      "id": "REQ-1",
+      "summary": "Create a new dedicated `/receive` route that renders a full-screen QR scanner experience with file receive UI, replacing the modal-based flow",
       "acceptanceCriteria": [
-        "Principal ID is no longer visible in the ProfilePage UI",
-        "Any labels, text fields, or copy buttons related to principal ID are removed",
-        "Profile page layout adjusts properly without the principal ID section"
+        "A new `/receive` route exists and renders a dedicated full-screen page.",
+        "The page shows the camera viewfinder for scanning a QR code (reusing QRScannerModal logic).",
+        "After a successful scan, the file details and download UI (from QRReceiveDialog) are shown on the same screen without a separate modal.",
+        "A back/close button navigates the user back to the previous screen.",
+        "The scanner page is not a modal overlay on the dashboard."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ProfilePage.tsx",
+          "path": "frontend/src/pages/ReceivePage.tsx",
+          "operation": "create",
+          "description": "Create a new full-screen receive page component that integrates the QR scanner camera viewfinder and file receive UI on a single page. Use the qr-code/useQRScanner hook (verify the component's usage instructions before implementing) to access camera preview, scanning state, and QR results. After a successful scan, parse the session ID using frontend/src/utils/qrPayload.ts, fetch the transfer record via getTransferRecord backend capability, and display the file details inline with a download button. Include a back/close button in the top-left corner that navigates to the previous screen using router history. Ensure the camera preview has explicit dimensions (e.g., aspect-ratio wrapper or min-height) so it never collapses. Display proper error messages for camera failures and scanning errors. Reuse styling patterns from QRScannerModal.tsx and QRReceiveDialog.tsx but lay out the UI as a single continuous page flow rather than overlapping modals."
+        },
+        {
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Remove the principal ID display section including any labels, copy buttons, or text fields that show the user's Internet Identity principal. Ensure the layout remains visually balanced after removal."
+          "description": "Register the new `/receive` route in the TanStack Router configuration, importing the ReceivePage component and adding a Route entry for path '/receive' that renders <ReceivePage />. Place the route at the same nesting level as the existing /menu and /profile routes."
         }
       ]
     },
     {
-      "id": "REQ-95",
-      "summary": "Remove avatar URL input field and related UI elements from ProfilePage",
+      "id": "REQ-2",
+      "summary": "Update the QR scanner trigger in TransferHistory and any other locations so that tapping the scan button navigates to the new `/receive` route instead of opening QRScannerModal",
       "acceptanceCriteria": [
-        "Avatar URL input field is removed from the profile form",
-        "Avatar-related labels, placeholders, and helper text are removed",
-        "Profile form no longer sends or updates avatar data when saving changes",
-        "Form validation and submission logic handles the absence of avatar field correctly"
+        "Tapping the scan/receive QR button in TransferHistory navigates to `/receive` instead of opening a modal.",
+        "The existing QRScannerModal and QRReceiveDialog components are no longer used as modals in the receiver flow.",
+        "No regression in the sender QR code generation flow (QRCodeDialog remains unchanged)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ProfilePage.tsx",
+          "path": "frontend/src/components/TransferHistory.tsx",
           "operation": "modify",
-          "description": "Remove the avatar URL input field and all related UI elements (labels, placeholders, helper text). Update the profile update mutation call to exclude avatarUrl from the payload. Ensure form validation and submission logic work correctly without the avatar field."
-        }
-      ]
-    },
-    {
-      "id": "REQ-96",
-      "summary": "Remove principal ID display from MobileMenu profile section",
-      "acceptanceCriteria": [
-        "Principal ID is not shown in the mobile menu profile section",
-        "User profile display in mobile menu shows only display name",
-        "Layout remains visually balanced without principal ID"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/MobileMenu.tsx",
-          "operation": "modify",
-          "description": "Remove any principal ID display from the profile section in the mobile menu. Ensure only the display name is shown and that the layout remains visually balanced."
-        }
-      ]
-    },
-    {
-      "id": "REQ-97",
-      "summary": "Replace avatar images with display name initials or placeholder icons",
-      "acceptanceCriteria": [
-        "Avatar images are no longer fetched or displayed from avatar URLs",
-        "Profile displays use initials or placeholder icons instead of custom avatars",
-        "All avatar-related image loading logic is removed or disabled"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ProfilePage.tsx",
-          "operation": "modify",
-          "description": "Replace any avatar image rendering with display name initials or a simple placeholder icon. Remove avatar image fetching and loading logic."
+          "description": "Replace the state-based modal opening logic (isScannerOpen, setIsScannerOpen) with navigation to the `/receive` route using the TanStack Router's useNavigate hook. Update the 'Receive via QR' button's onClick handler to call navigate({ to: '/receive' }) instead of opening the QRScannerModal. Remove the <QRScannerModal> and <QRReceiveDialog> components from the JSX since they are no longer needed in this flow. Keep the QRCodeDialog (sender flow) unchanged. Remove any state variables and handlers related to the scanner modal and receive dialog."
         },
         {
-          "path": "frontend/src/pages/MobileMenu.tsx",
+          "path": "frontend/src/pages/Dashboard.tsx",
           "operation": "modify",
-          "description": "Replace any avatar image rendering with display name initials or a simple placeholder icon. Remove avatar image fetching and loading logic."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "If the Header displays user avatar in any menu or profile button, replace it with display name initials or a placeholder icon. Remove avatar image loading logic."
-        },
-        {
-          "path": "frontend/src/components/OnlineUsers.tsx",
-          "operation": "modify",
-          "description": "Replace avatar images in the online users list with display name initials or placeholder icons. Remove avatar-related image loading logic while preserving the rest of the online users display functionality."
+          "description": "Review the Dashboard component for any additional QR scanner triggers (such as floating action buttons or quick-access shortcuts) that may open the QRScannerModal. If found, update those triggers to navigate to `/receive` instead of opening a modal. Verify that no references to QRScannerModal or QRReceiveDialog remain in the receiver flow."
         }
       ]
     }

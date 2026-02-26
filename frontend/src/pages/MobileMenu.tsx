@@ -1,124 +1,110 @@
-import { useNavigate } from '@tanstack/react-router';
+import React from 'react';
+import { Settings, LogOut, Smartphone } from 'lucide-react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from '../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, LogOut, Settings, Download } from 'lucide-react';
-import { useSwipeBack } from '../hooks/useSwipeBack';
+import { useGetCallerUserProfile } from '../hooks/useQueries';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import { BRANDING } from '../constants/branding';
 
-export default function MobileMenu() {
-  const navigate = useNavigate();
+interface MobileMenuProps {
+  onNavigateToProfile: () => void;
+  onClose: () => void;
+}
+
+export default function MobileMenu({ onNavigateToProfile, onClose }: MobileMenuProps) {
   const { clear } = useInternetIdentity();
-  const { data: userProfile } = useGetCallerUserProfile();
   const queryClient = useQueryClient();
+  const { data: userProfile } = useGetCallerUserProfile();
   const { isInstallable, promptInstall } = useInstallPrompt();
 
-  const handleBack = () => {
-    navigate({ to: '/' });
-  };
-
-  const swipeHandlers = useSwipeBack({
-    onSwipeBack: handleBack,
-    threshold: 100,
-  });
+  const displayName = userProfile?.displayName || 'User';
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   const handleLogout = async () => {
     await clear();
     queryClient.clear();
+    onClose();
   };
 
-  const handleProfileClick = () => {
-    navigate({ to: '/profile' });
+  const handleProfileSettings = () => {
+    onNavigateToProfile();
+    onClose();
   };
 
   const handleInstall = async () => {
     await promptInstall();
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
-    <div
-      className="fixed inset-0 z-40 flex flex-col bg-background animate-in slide-in-from-right duration-300"
-      {...swipeHandlers}
-    >
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-border/40 bg-background/95 backdrop-blur px-4 safe-top">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleBack}
-          className="h-11 w-11"
-          aria-label="Go back"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <h2 className="text-lg font-semibold">Menu</h2>
+      <div className="px-6 pt-8 pb-6 border-b border-border">
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <span className="text-xl font-bold text-primary">{initials}</span>
+          </div>
+          {/* User info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-xl font-bold text-foreground truncate">{displayName}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{BRANDING.appName} User</p>
+          </div>
+        </div>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto safe-bottom">
-        <div className="px-4 py-6 space-y-6">
-          {/* User Profile Section */}
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback className="text-xl">
-                {userProfile?.displayName ? getInitials(userProfile.displayName) : 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-lg font-semibold truncate">{userProfile?.displayName || 'User'}</p>
-            </div>
-          </div>
+      {/* Menu items */}
+      <div className="flex flex-col gap-1 px-4 py-4 flex-1">
+        <button
+          onClick={handleProfileSettings}
+          className="
+            flex items-center gap-4 w-full
+            min-h-[56px] px-4 rounded-xl
+            text-base font-medium text-foreground
+            hover:bg-muted active:bg-muted/80
+            transition-colors text-left
+          "
+        >
+          <Settings size={22} className="text-muted-foreground shrink-0" />
+          <span>Profile Settings</span>
+        </button>
 
-          <Separator />
-
-          {/* Profile Settings */}
-          <Button
-            variant="ghost"
-            className="w-full justify-start h-14 text-base"
-            onClick={handleProfileClick}
+        {isInstallable && (
+          <button
+            onClick={handleInstall}
+            className="
+              flex items-center gap-4 w-full
+              min-h-[56px] px-4 rounded-xl
+              text-base font-medium text-foreground
+              hover:bg-muted active:bg-muted/80
+              transition-colors text-left
+            "
           >
-            <Settings className="mr-3 h-5 w-5" />
-            <span>Profile</span>
-          </Button>
+            <Smartphone size={22} className="text-muted-foreground shrink-0" />
+            <span>Install App</span>
+          </button>
+        )}
+      </div>
 
-          {/* Install App Button */}
-          {isInstallable && (
-            <>
-              <Button
-                variant="ghost"
-                className="w-full justify-start h-14 text-base"
-                onClick={handleInstall}
-              >
-                <Download className="mr-3 h-5 w-5" />
-                <span>Install App</span>
-              </Button>
-            </>
-          )}
-
-          <Separator />
-
-          {/* Logout */}
-          <Button
-            variant="ghost"
-            className="w-full justify-start h-14 text-base text-destructive hover:text-destructive"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-3 h-5 w-5" />
-            <span>Logout</span>
-          </Button>
-        </div>
+      {/* Logout */}
+      <div className="px-4 pb-8 border-t border-border pt-4">
+        <button
+          onClick={handleLogout}
+          className="
+            flex items-center gap-4 w-full
+            min-h-[56px] px-4 rounded-xl
+            text-base font-semibold text-destructive
+            hover:bg-destructive/10 active:bg-destructive/20
+            transition-colors text-left
+          "
+        >
+          <LogOut size={22} className="shrink-0" />
+          <span>Log Out</span>
+        </button>
       </div>
     </div>
   );

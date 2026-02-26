@@ -350,4 +350,26 @@ actor {
     };
     userResults;
   };
+
+  public query ({ caller }) func getTransferRecord(id : Text) : async ?TransferRecord {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can access transfer records");
+    };
+
+    switch (transferRecords.get(id)) {
+      case (?record) {
+        // Only the sender, receiver, or an admin may view the record
+        if (
+          caller != record.sender and
+          caller != record.receiver and
+          not AccessControl.isAdmin(accessControlState, caller)
+        ) {
+          Runtime.trap("Unauthorized: Can only access transfer records you are part of");
+        };
+        ?record;
+      };
+      case (null) { null };
+    };
+  };
+
 };

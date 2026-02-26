@@ -41,6 +41,15 @@ export interface AIProcessingResult {
     resultType: Variant_imageCompression_fileRecognition;
     processedFile?: ExternalBlob;
 }
+export interface TransferRecord {
+    id: string;
+    transferTime: Time;
+    file: FileMetadata;
+    sender: Principal;
+    success: boolean;
+    receiver: Principal;
+    transferDuration: bigint;
+}
 export interface UserProfile {
     displayName: string;
     avatarUrl: string;
@@ -65,6 +74,7 @@ export interface backendInterface {
     getFileMetadata(fileId: string): Promise<FileMetadata>;
     getOnlineUsers(): Promise<Array<Principal>>;
     getTransferHistory(user: Principal): Promise<Array<TransferRecordData>>;
+    getTransferRecord(id: string): Promise<TransferRecord | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     recordAIProcessing(id: string, resultType: Variant_imageCompression_fileRecognition, metadata: string, processedFile: ExternalBlob | null): Promise<void>;

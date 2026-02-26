@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
+import { RouterProvider, createRouter, createRoute, createRootRoute, useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
 import Header from './components/Header';
@@ -8,6 +8,7 @@ import ProfileSetup from './components/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import MobileMenu from './pages/MobileMenu';
 import ProfilePage from './pages/ProfilePage';
+import ReceivePage from './pages/ReceivePage';
 import LoginScreen from './components/LoginScreen';
 import OnboardingTutorial from './components/OnboardingTutorial';
 import { Toaster } from '@/components/ui/sonner';
@@ -34,12 +35,16 @@ function AuthenticatedLayout() {
 }
 
 function MenuLayout() {
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-primary/5">
       <ConnectionStatusBar />
       <Header />
       <main className="flex-1">
-        <MobileMenu />
+        <MobileMenu
+          onNavigateToProfile={() => navigate({ to: '/profile' })}
+          onClose={() => navigate({ to: '/' })}
+        />
       </main>
       <Footer />
     </div>
@@ -47,12 +52,13 @@ function MenuLayout() {
 }
 
 function ProfileLayout() {
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-primary/5">
       <ConnectionStatusBar />
       <Header />
       <main className="flex-1">
-        <ProfilePage />
+        <ProfilePage onBack={() => navigate({ to: '/menu' })} />
       </main>
       <Footer />
     </div>
@@ -80,7 +86,13 @@ const profileRoute = createRoute({
   component: ProfileLayout,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, menuRoute, profileRoute]);
+const receiveRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/receive',
+  component: ReceivePage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, menuRoute, profileRoute, receiveRoute]);
 
 const router = createRouter({ routeTree });
 
@@ -136,7 +148,9 @@ export default function App() {
   if (showProfileSetup) {
     return (
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <ProfileSetup />
+        <ProfileSetup onComplete={() => {
+          // Profile saved — the query will invalidate and re-render automatically
+        }} />
         <Toaster />
       </ThemeProvider>
     );

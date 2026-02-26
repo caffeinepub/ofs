@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-profilepage-component-frontend-src-pages-profilepage-tsx-remove-the-principal-id-display-field-section-that-shows-the-user-s-internet-identity-principal",
-      "featureTitle": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), remove the principal ID display field/section that shows the user's Internet Identity principal.",
+      "featureId": "feature-create-a-new-dedicated-receive-route-page-in-the-router-that-renders-a-full-screen-qr-scanner-experience-this-page-should-display-the-camera-viewfinder-scan-a-qr-code-fetch-the-associated-transfer-record-and-show-the-file-receive-download-ui-all-without-overlaying-a-modal-on-top-of-the-existing-dashboard-the-page-should-include-a-back-close-button-that-navigates-the-user-back-to-the-previous-screen",
+      "featureTitle": "Create a new dedicated `/receive` route (page) in the router that renders a full-screen QR scanner experience. This page should display the camera viewfinder, scan a QR code, fetch the associated transfer record, and show the file receive/download UI — all without overlaying a modal on top of the existing dashboard. The page should include a back/close button that navigates the user back to the previous screen.",
       "files": [
-        "frontend/src/pages/ProfilePage.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/pages/ReceivePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,15 +20,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-94"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-the-profilepage-component-frontend-src-pages-profilepage-tsx-remove-the-avatar-url-input-field-and-any-related-ui-elements-for-avatar-configuration",
-      "featureTitle": "In the ProfilePage component (frontend/src/pages/ProfilePage.tsx), remove the avatar URL input field and any related UI elements for avatar configuration.",
+      "featureId": "feature-update-the-qr-scanner-trigger-in-transferhistory-and-any-other-location-that-opens-the-qr-scanner-modal-so-that-tapping-the-scan-button-navigates-to-the-new-receive-route-instead-of-opening-qrscannermodal-as-a-modal-dialog",
+      "featureTitle": "Update the QR scanner trigger in TransferHistory (and any other location that opens the QR scanner modal) so that tapping the scan button navigates to the new `/receive` route instead of opening QRScannerModal as a modal dialog.",
       "files": [
-        "frontend/src/pages/ProfilePage.tsx"
+        "frontend/src/components/TransferHistory.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,53 +42,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-95"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-mobilemenu-component-frontend-src-pages-mobilemenu-tsx-if-the-user-s-principal-id-is-displayed-in-the-profile-section-remove-it-from-the-ui",
-      "featureTitle": "In the MobileMenu component (frontend/src/pages/MobileMenu.tsx), if the user's principal ID is displayed in the profile section, remove it from the UI.",
-      "files": [
-        "frontend/src/pages/MobileMenu.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "camera@1.0.0",
-        "qr-code@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-96"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-if-avatar-images-are-currently-displayed-in-any-profile-related-ui-components-profilepage-mobilemenu-header-user-menu-remove-the-avatar-image-rendering-and-replace-with-display-name-initials-or-a-simple-placeholder-icon",
-      "featureTitle": "If avatar images are currently displayed in any profile-related UI components (ProfilePage, MobileMenu, Header user menu), remove the avatar image rendering and replace with display name initials or a simple placeholder icon.",
-      "files": [
-        "frontend/src/components/OnlineUsers.tsx",
-        "frontend/src/pages/MobileMenu.tsx",
-        "frontend/src/pages/ProfilePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "camera@1.0.0",
-        "qr-code@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-97"
+        "REQ-2"
       ],
       "confidence": "high"
     }

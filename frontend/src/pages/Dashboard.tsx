@@ -16,15 +16,15 @@ export default function Dashboard() {
   const { identity } = useInternetIdentity();
   const setOnlineStatus = useSetOnlineStatus();
   const isOnline = useOnlineStatus();
-  
+
   // Read tab and subtab from URL search params
   const search = useSearch({ strict: false }) as { tab?: TabValue; subtab?: SubTabValue };
-  const initialTab = search.tab && ['transfer', 'history', 'users', 'ai'].includes(search.tab) 
-    ? search.tab 
-    : 'transfer';
-  
+  const initialTab =
+    search.tab && ['transfer', 'history', 'users', 'ai'].includes(search.tab)
+      ? search.tab
+      : 'transfer';
+
   const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
-  const [prefilledFile, setPrefilledFile] = useState<{ file: File; source: string } | null>(null);
 
   // Update active tab when URL search params change
   useEffect(() => {
@@ -39,7 +39,6 @@ export default function Dashboard() {
       setOnlineStatus.mutate(true);
     }
 
-    // Set user offline when component unmounts or page closes
     return () => {
       if (identity) {
         setOnlineStatus.mutate(false);
@@ -47,24 +46,13 @@ export default function Dashboard() {
     };
   }, [isOnline, identity]);
 
-  const handleShareCompressedImage = (file: File) => {
-    setPrefilledFile({ file, source: 'compression' });
-    setActiveTab('transfer');
-  };
-
-  const handleFileProcessed = () => {
-    setPrefilledFile(null);
-  };
-
   return (
     <div className="relative min-h-full">
       <div className="px-4 py-6 pb-24">
-        {activeTab === 'transfer' && (
-          <FileTransfer prefilledFile={prefilledFile} onFileProcessed={handleFileProcessed} />
-        )}
+        {activeTab === 'transfer' && <FileTransfer />}
         {activeTab === 'history' && <TransferHistory initialSubTab={search.subtab} />}
         {activeTab === 'users' && <OnlineUsers />}
-        {activeTab === 'ai' && <AIFeatures onShareCompressedImage={handleShareCompressedImage} />}
+        {activeTab === 'ai' && <AIFeatures />}
       </div>
 
       <BottomNavBar activeTab={activeTab} onTabChange={setActiveTab} />

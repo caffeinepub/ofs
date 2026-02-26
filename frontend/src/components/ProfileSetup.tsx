@@ -1,112 +1,98 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
+import { User } from 'lucide-react';
 import { useSaveCallerUserProfile } from '../hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { BRANDING } from '../constants/branding';
 import { useKeyboardHandler } from '../hooks/useKeyboardHandler';
+import { BRANDING } from '../constants/branding';
 
-export default function ProfileSetup() {
+interface ProfileSetupProps {
+  onComplete: () => void;
+}
+
+export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const [displayName, setDisplayName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const saveProfile = useSaveCallerUserProfile();
-  
-  const displayNameRef = useRef<HTMLInputElement>(null);
-  const avatarUrlRef = useRef<HTMLInputElement>(null);
+  const { mutate: saveProfile, isPending } = useSaveCallerUserProfile();
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
-  useKeyboardHandler({
-    inputRefs: [displayNameRef, avatarUrlRef],
-  });
+  useKeyboardHandler({ inputRefs: [nameInputRef] });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!displayName.trim()) return;
 
-    if (!displayName.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
-
-    try {
-      await saveProfile.mutateAsync({
+    saveProfile(
+      {
         displayName: displayName.trim(),
-        avatarUrl: avatarUrl.trim(),
+        avatarUrl: '',
         online: true,
-      });
-      toast.success('Profile created successfully!');
-    } catch (error: any) {
-      console.error('Failed to save profile:', error);
-      toast.error('Failed to create profile');
-    }
+      },
+      { onSuccess: onComplete }
+    );
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4">
-            <img
-              src="/assets/generated/ofs-logo-transparent.dim_200x200.png"
-              alt="OFS Logo"
-              className="h-20 w-20 mx-auto"
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6">
+      <div className="w-full max-w-sm flex flex-col gap-6">
+        {/* Icon */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+            <User size={36} className="text-primary" />
+          </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground">Set Up Profile</h1>
+            <p className="text-base text-muted-foreground mt-1">
+              Choose a display name for {BRANDING.appName}
+            </p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-semibold text-foreground" htmlFor="name">
+              Display Name
+            </label>
+            <input
+              id="name"
+              ref={nameInputRef}
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your name"
+              className="
+                w-full min-h-[52px] px-4 rounded-xl
+                bg-muted border border-border
+                text-base text-foreground placeholder:text-muted-foreground
+                focus:outline-none focus:ring-2 focus:ring-ring
+              "
+              autoComplete="name"
+              inputMode="text"
+              autoFocus
             />
           </div>
-          <CardTitle className="text-2xl">Welcome to {BRANDING.appName}</CardTitle>
-          <CardDescription>Let's set up your profile to get started</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="displayName" className="text-base">
-                Display Name *
-              </Label>
-              <Input
-                ref={displayNameRef}
-                id="displayName"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Enter your name"
-                required
-                className="h-14 text-base"
-              />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="avatarUrl" className="text-base">
-                Avatar URL (optional)
-              </Label>
-              <Input
-                ref={avatarUrlRef}
-                id="avatarUrl"
-                type="url"
-                inputMode="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://example.com/avatar.jpg"
-                className="h-14 text-base"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={saveProfile.isPending}
-              className="w-full h-14 text-base"
-            >
-              {saveProfile.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Creating Profile...
-                </>
-              ) : (
-                'Continue'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <button
+            type="submit"
+            disabled={isPending || !displayName.trim()}
+            className="
+              w-full min-h-[52px] rounded-xl
+              bg-primary text-primary-foreground
+              text-base font-semibold
+              flex items-center justify-center gap-2
+              disabled:opacity-50 transition-opacity
+              active:scale-[0.98]
+            "
+          >
+            {isPending ? (
+              <>
+                <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                Saving…
+              </>
+            ) : (
+              'Continue'
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

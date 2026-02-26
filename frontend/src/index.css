@@ -4,48 +4,52 @@
 
 @layer base {
   :root {
-    --background: oklch(100% 0 0);
-    --foreground: oklch(15% 0 0);
-    --card: oklch(100% 0 0);
-    --card-foreground: oklch(15% 0 0);
-    --popover: oklch(100% 0 0);
-    --popover-foreground: oklch(15% 0 0);
-    --primary: oklch(62% 0.22 35);
-    --primary-foreground: oklch(100% 0 0);
-    --secondary: oklch(95% 0.01 35);
-    --secondary-foreground: oklch(15% 0 0);
-    --muted: oklch(95% 0.01 35);
-    --muted-foreground: oklch(45% 0.01 35);
-    --accent: oklch(85% 0.08 75);
-    --accent-foreground: oklch(15% 0 0);
-    --destructive: oklch(55% 0.22 25);
-    --destructive-foreground: oklch(100% 0 0);
-    --border: oklch(90% 0.01 35);
-    --input: oklch(90% 0.01 35);
-    --ring: oklch(62% 0.22 35);
-    --radius: 0.5rem;
+    --background: oklch(0.99 0.002 240);
+    --foreground: oklch(0.15 0.02 240);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.15 0.02 240);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.15 0.02 240);
+    --primary: oklch(0.55 0.18 250);
+    --primary-foreground: oklch(0.99 0.002 240);
+    --secondary: oklch(0.94 0.01 240);
+    --secondary-foreground: oklch(0.25 0.02 240);
+    --muted: oklch(0.95 0.008 240);
+    --muted-foreground: oklch(0.52 0.02 240);
+    --accent: oklch(0.92 0.04 250);
+    --accent-foreground: oklch(0.25 0.05 250);
+    --destructive: oklch(0.55 0.22 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(0.88 0.01 240);
+    --input: oklch(0.88 0.01 240);
+    --ring: oklch(0.55 0.18 250);
+    --radius: 0.75rem;
+    --success: oklch(0.55 0.18 145);
+    --warning: oklch(0.72 0.18 75);
   }
 
   .dark {
-    --background: oklch(15% 0.01 35);
-    --foreground: oklch(98% 0 0);
-    --card: oklch(18% 0.01 35);
-    --card-foreground: oklch(98% 0 0);
-    --popover: oklch(18% 0.01 35);
-    --popover-foreground: oklch(98% 0 0);
-    --primary: oklch(68% 0.20 35);
-    --primary-foreground: oklch(15% 0 0);
-    --secondary: oklch(25% 0.02 35);
-    --secondary-foreground: oklch(98% 0 0);
-    --muted: oklch(25% 0.02 35);
-    --muted-foreground: oklch(65% 0.01 35);
-    --accent: oklch(35% 0.10 75);
-    --accent-foreground: oklch(98% 0 0);
-    --destructive: oklch(60% 0.20 25);
-    --destructive-foreground: oklch(98% 0 0);
-    --border: oklch(25% 0.02 35);
-    --input: oklch(25% 0.02 35);
-    --ring: oklch(68% 0.20 35);
+    --background: oklch(0.12 0.015 240);
+    --foreground: oklch(0.95 0.008 240);
+    --card: oklch(0.16 0.015 240);
+    --card-foreground: oklch(0.95 0.008 240);
+    --popover: oklch(0.16 0.015 240);
+    --popover-foreground: oklch(0.95 0.008 240);
+    --primary: oklch(0.65 0.18 250);
+    --primary-foreground: oklch(0.12 0.015 240);
+    --secondary: oklch(0.22 0.015 240);
+    --secondary-foreground: oklch(0.88 0.01 240);
+    --muted: oklch(0.20 0.012 240);
+    --muted-foreground: oklch(0.62 0.02 240);
+    --accent: oklch(0.25 0.04 250);
+    --accent-foreground: oklch(0.88 0.04 250);
+    --destructive: oklch(0.60 0.22 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(0.28 0.015 240);
+    --input: oklch(0.28 0.015 240);
+    --ring: oklch(0.65 0.18 250);
+    --success: oklch(0.60 0.18 145);
+    --warning: oklch(0.75 0.18 75);
   }
 }
 
@@ -53,57 +57,100 @@
   * {
     @apply border-border;
   }
+
+  html,
+  body {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; }
+  h2 { font-size: clamp(1.375rem, 4vw, 1.875rem); font-weight: 600; }
+  h3 { font-size: clamp(1.125rem, 3vw, 1.5rem); font-weight: 600; }
+
+  input,
+  textarea,
+  select {
+    font-size: 1rem !important;
   }
 }
 
+/* Safe area utilities */
 @layer utilities {
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
+  .pt-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
   }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .safe-left {
-    padding-left: env(safe-area-inset-left);
+  .pl-safe-left {
+    padding-left: env(safe-area-inset-left, 0px);
   }
-  .safe-right {
-    padding-right: env(safe-area-inset-right);
+  .pr-safe-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .mb-safe-bottom {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-/* Modal z-index layering system */
-@layer components {
-  /* Base layer for file selection dialogs */
-  [data-radix-dialog-overlay] {
-    z-index: 40;
-    background-color: rgba(0, 0, 0, 0.5);
+/* Modal z-index layering */
+@layer utilities {
+  .z-modal { z-index: 100; }
+  .z-modal-overlay { z-index: 99; }
+  .z-drawer { z-index: 50; }
+  .z-nav { z-index: 40; }
+  .z-header { z-index: 30; }
+}
+
+/* QR scan line animation */
+@keyframes scan-line {
+  0% { top: 0; }
+  50% { top: calc(100% - 2px); }
+  100% { top: 0; }
+}
+
+.animate-scan-line {
+  animation: scan-line 2s ease-in-out infinite;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+/* Touch action utilities */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
   }
-  
-  [data-radix-dialog-content] {
-    z-index: 40;
+  .touch-none {
+    touch-action: none;
   }
-  
-  /* Middle layer for navigation drawer with enhanced backdrop */
-  [data-radix-sheet-overlay] {
-    z-index: 50;
-    background-color: rgba(0, 0, 0, 0.7) !important;
-    backdrop-filter: blur(4px);
+  .touch-pan-y {
+    touch-action: pan-y;
   }
-  
-  [data-radix-sheet-content] {
-    z-index: 50;
-  }
-  
-  /* Top layer for profile dialog - override with inline styles */
-  .z-\[100\] {
-    z-index: 100 !important;
-  }
-  
-  /* Ensure profile dialog overlay is also on top */
-  [data-radix-dialog-overlay].z-\[100\] {
-    z-index: 100 !important;
-  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.01 240 / 0.4);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6 0.01 240 / 0.6);
 }
