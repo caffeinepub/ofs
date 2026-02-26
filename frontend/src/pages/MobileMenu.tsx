@@ -32,8 +32,9 @@ export default function MobileMenu({ onNavigateToProfile, onClose }: MobileMenuP
   };
 
   const handleProfileSettings = () => {
+    // Only navigate to profile — do NOT call onClose() here,
+    // as that would navigate back to '/' and override the profile navigation.
     onNavigateToProfile();
-    onClose();
   };
 
   const handleInstall = async () => {

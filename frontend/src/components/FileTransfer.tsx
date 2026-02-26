@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Users, QrCode, WifiOff, X, FileIcon, CheckCircle, Loader2 } from 'lucide-react';
+import { Upload, Users, QrCode, WifiOff, X, FileIcon, CheckCircle, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useActor } from '../hooks/useActor';
-import { useGetOnlineUsers, useGetUserProfile, useRecordTransfer } from '../hooks/useQueries';
+import { useGetOnlineUsers, useGetUserProfile, useRecordTransfer, useGetCallerUserProfile } from '../hooks/useQueries';
 import { ExternalBlob } from '../backend';
 import { validateFileSize } from '../utils/fileSizeValidation';
 import { useNetworkInfo } from '../hooks/useNetworkInfo';
@@ -77,12 +77,16 @@ function UserItem({
   );
 }
 
-export default function FileTransfer({ displayName }: FileTransferProps) {
+export default function FileTransfer({ displayName: displayNameProp }: FileTransferProps) {
   const { identity } = useInternetIdentity();
   const { actor } = useActor();
   const isOnline = useOnlineStatus();
   const { triggerLight, triggerSuccess, triggerMedium } = useHapticFeedback();
   const networkInfo = useNetworkInfo();
+
+  // Fetch the current user's profile to show their display name
+  const { data: userProfile } = useGetCallerUserProfile();
+  const senderName = userProfile?.displayName || displayNameProp || 'Anonymous';
 
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [selectedRecipient, setSelectedRecipient] = useState<string | null>(null);
@@ -251,13 +255,18 @@ export default function FileTransfer({ displayName }: FileTransferProps) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-4 pt-4 pb-6 space-y-5">
-        {/* User greeting */}
-        {displayName && (
-          <div className="text-center py-2">
-            <p className="text-muted-foreground text-sm">Sending as</p>
-            <p className="font-semibold text-lg">{displayName}</p>
+        {/* Sender identity banner */}
+        <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-2xl px-4 py-3">
+          <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+            <User className="w-5 h-5 text-primary" />
           </div>
-        )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+              Sending as
+            </p>
+            <p className="font-semibold text-foreground text-base truncate">{senderName}</p>
+          </div>
+        </div>
 
         {/* Offline warning */}
         {!isOnline && (

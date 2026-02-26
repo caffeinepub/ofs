@@ -1,16 +1,26 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T10:44:46.119Z",
-  "summary": "Both REQ-1 and REQ-2 appear to be implemented. A new ReceivePage.tsx is created with full-screen QR scanner, back navigation, file details UI, and download functionality. The /receive route is registered in App.tsx. TransferHistory.tsx is updated to navigate to /receive instead of opening a modal. All acceptance criteria appear satisfied.",
+  "generatedAt": "2026-02-26T11:54:38.958Z",
+  "summary": "Both REQ-1 and REQ-2 appear to be implemented. REQ-1: ProfilePage uses useSaveCallerUserProfile which calls saveProfile on Save Changes, the mutation onSuccess sets query cache via setQueryData and invalidates, and a saveSuccess state flag shows an inline success indicator. REQ-2: FileTransfer fetches the caller's profile via useGetCallerUserProfile and renders a Sending as [name] banner with Anonymous fallback. The useUpdateProfile hook exists but is not used in ProfilePage which uses useSaveCallerUserProfile instead — this is acceptable as it still persists to the backend. All core ACs appear satisfied.",
   "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.92,
+  "hallucinated_features": [
+    {
+      "description": "A useUpdateProfile mutation hook was added that calls a separate updateProfile backend endpoint, but it is not used in ProfilePage and was not explicitly requested as a needed endpoint.",
+      "reason": "The build request non-goals state no new backend endpoints beyond what is needed to persist and retrieve the display name. Adding a second updateProfile endpoint and corresponding hook goes beyond what was requested, though it is unused in the UI.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "confidence": 0.82,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/TransferHistory.tsx",
-    "frontend/src/pages/ReceivePage.tsx",
+    "frontend/src/components/FileTransfer.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/ProfilePage.tsx",
     "project_state.json"
   ]
 }

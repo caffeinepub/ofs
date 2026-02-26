@@ -1,57 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Open QR scanner on a dedicated full-screen receive page",
-  "projectName": "OFS File Share",
+  "title": "Save display name and show it on Transfer screen",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Create a new dedicated `/receive` route (page) in the router that renders a full-screen QR scanner experience. This page should display the camera viewfinder, scan a QR code, fetch the associated transfer record, and show the file receive/download UI — all without overlaying a modal on top of the existing dashboard. The page should include a back/close button that navigates the user back to the previous screen.",
-      "target": "frontend",
+      "text": "On the ProfilePage, after the user clicks 'Save Changes', persist the updated display name to the backend and immediately reflect the new name in the local query cache so it is available app-wide.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "when a reciever scanner the scanner just open on new screen to recieve files"
+          "after clicking on save changes make that save name"
         ]
       },
       "acceptanceCriteria": [
-        "A new `/receive` route exists and renders a dedicated full-screen page.",
-        "The page shows the camera viewfinder for scanning a QR code (reusing QRScannerModal logic).",
-        "After a successful scan, the file details and download UI (from QRReceiveDialog) are shown on the same screen without a separate modal.",
-        "A back/close button navigates the user back to the previous screen.",
-        "The scanner page is not a modal overlay on the dashboard."
+        "Clicking 'Save Changes' on ProfilePage triggers the update-profile mutation with the entered display name.",
+        "The mutation result updates the cached user profile query so the new name is immediately available without a page reload.",
+        "A success indicator (toast or inline message) is shown after the name is saved."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the QR scanner trigger in TransferHistory (and any other location that opens the QR scanner modal) so that tapping the scan button navigates to the new `/receive` route instead of opening QRScannerModal as a modal dialog.",
+      "text": "On the Transfer screen (FileTransfer component inside the Dashboard's transfer tab), display the current user's saved display name — for example, as a greeting or sender label — using the profile data from the React Query user-profile hook.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "when a reciever scanner the scanner just open on new screen to recieve files"
+          "show on transfer screen"
         ]
       },
       "acceptanceCriteria": [
-        "Tapping the scan/receive QR button in TransferHistory navigates to `/receive` instead of opening a modal.",
-        "The existing QRScannerModal and QRReceiveDialog components are no longer used as modals in the receiver flow.",
-        "No regression in the sender QR code generation flow (QRCodeDialog remains unchanged)."
+        "The Transfer screen reads the authenticated user's display name from the cached profile query.",
+        "The display name is rendered visibly on the Transfer screen (e.g., 'Sending as: [Name]' or a greeting header).",
+        "After saving a new name on ProfilePage and navigating back to the Transfer screen, the updated name is shown without requiring an app reload.",
+        "If no name is set, a sensible fallback (e.g., 'Anonymous' or truncated principal) is shown."
       ]
     }
   ],
   "constraints": [
     "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-    "Do not change the QR code generation (sender) flow — only the receiver scanner flow is affected.",
-    "Reuse existing QRScannerModal and QRReceiveDialog logic; extract into the new page rather than duplicating."
+    "All backend logic must remain in the single main actor in backend/main.mo."
   ],
   "nonGoals": [
-    "Changing the backend API or data models.",
-    "Modifying the sender's QR code generation dialog.",
-    "Adding new file transfer features beyond the receive screen."
+    "Redesigning the Transfer screen layout beyond adding the display name.",
+    "Adding new backend endpoints beyond what is needed to persist and retrieve the display name.",
+    "Changing the onboarding or profile setup flow."
   ],
   "imageRequirements": {
     "required": [],

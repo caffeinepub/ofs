@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
 import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../hooks/useQueries';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { useKeyboardHandler } from '../hooks/useKeyboardHandler';
@@ -14,6 +14,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
   const { mutate: saveProfile, isPending: isSaving } = useSaveCallerUserProfile();
 
   const [displayName, setDisplayName] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const { isLocked, toggleLock } = useOrientationLock();
@@ -29,13 +30,20 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
 
   const handleSave = () => {
     if (!displayName.trim()) return;
+    setSaveSuccess(false);
     saveProfile(
       {
         displayName: displayName.trim(),
         avatarUrl: userProfile?.avatarUrl || '',
         online: userProfile?.online ?? true,
       },
-      { onSuccess: onBack }
+      {
+        onSuccess: () => {
+          setSaveSuccess(true);
+          // Auto-hide success message after 3 seconds
+          setTimeout(() => setSaveSuccess(false), 3000);
+        },
+      }
     );
   };
 
@@ -99,7 +107,10 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
             ref={nameInputRef}
             type="text"
             value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
+            onChange={(e) => {
+              setDisplayName(e.target.value);
+              if (saveSuccess) setSaveSuccess(false);
+            }}
             placeholder="Enter your display name"
             className="
               w-full min-h-[52px] px-4 rounded-xl
@@ -111,6 +122,21 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
             inputMode="text"
           />
         </div>
+
+        {/* Success message */}
+        {saveSuccess && (
+          <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
+            <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+            <div>
+              <p className="text-green-600 dark:text-green-400 text-sm font-semibold">
+                Name saved!
+              </p>
+              <p className="text-green-600/70 dark:text-green-400/70 text-xs">
+                Your display name has been updated to "{displayName.trim()}".
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Orientation Lock */}
         <div className="flex items-center justify-between p-4 bg-card rounded-xl border border-border">

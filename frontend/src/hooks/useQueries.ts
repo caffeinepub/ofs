@@ -37,7 +37,10 @@ export function useSaveCallerUserProfile() {
       if (!actor || !identity) throw new Error('Authentication required');
       return actor.saveCallerUserProfile(profile);
     },
-    onSuccess: () => {
+    onSuccess: (_data, profile) => {
+      // Immediately update the cache so the new name is visible everywhere
+      queryClient.setQueryData(['currentUserProfile'], profile);
+      // Also invalidate to ensure a fresh fetch in the background
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
   });
@@ -217,6 +220,22 @@ export function useGetTransferHistory(user: Principal | null) {
     },
     enabled: !!actor && !!user && !!identity && !isFetching,
     refetchInterval: 5000,
+  });
+}
+
+export function useDeleteTransferRecord() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!actor || !identity) throw new Error('Authentication required');
+      return actor.deleteTransferRecord(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transferHistory'] });
+    },
   });
 }
 

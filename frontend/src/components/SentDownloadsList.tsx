@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { Download, FileText, Image, Film, Music, Archive } from 'lucide-react';
-import { useGetTransferHistory } from '../hooks/useQueries';
+import { Download, FileText, Image, Film, Music, Archive, Trash2 } from 'lucide-react';
+import { useGetTransferHistory, useDeleteTransferRecord } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import type { TransferRecordData } from '../backend';
 import { downloadTransferFile } from '../utils/downloadTransferFile';
 import { useLongPress } from '../hooks/useLongPress';
 import FileContextMenu from './FileContextMenu';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import { toast } from 'sonner';
 import {
   formatFileSize,
   formatTimestamp,
@@ -27,6 +29,8 @@ interface FileItemProps {
 function FileItem({ record }: FileItemProps) {
   const [downloading, setDownloading] = useState(false);
   const [contextMenuOpen, setContextMenuOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const { mutateAsync: deleteRecord, isPending: isDeleting } = useDeleteTransferRecord();
   const FileIcon = getFileIcon(record.file.fileType);
 
   const handleDownload = useCallback(async () => {
@@ -38,6 +42,16 @@ function FileItem({ record }: FileItemProps) {
       setDownloading(false);
     }
   }, [record.file, downloading]);
+
+  const handleDelete = useCallback(async () => {
+    try {
+      await deleteRecord(record.id);
+      toast.success('Transfer record deleted');
+    } catch (error) {
+      console.error('Delete failed:', error);
+      toast.error('Failed to delete transfer record');
+    }
+  }, [record.id, deleteRecord]);
 
   const longPressHandlers = useLongPress({
     onLongPress: () => setContextMenuOpen(true),
@@ -70,28 +84,69 @@ function FileItem({ record }: FileItemProps) {
           )}
         </div>
 
-        {/* Download button */}
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className="
-            w-11 h-11 rounded-xl
-            bg-primary/10 text-primary
-            flex items-center justify-center
-            shrink-0 transition-opacity
-            disabled:opacity-50
-            active:scale-95
-          "
-          aria-label="Download file"
-        >
-          {downloading ? (
-            <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          ) : (
-            <Download size={20} />
-          )}
-        </button>
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Download button */}
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="
+              w-11 h-11 rounded-xl
+              bg-primary/10 text-primary
+              flex items-center justify-center
+              transition-opacity
+              disabled:opacity-50
+              active:scale-95
+            "
+            aria-label="Download file"
+          >
+            {downloading ? (
+              <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            ) : (
+              <Download size={20} />
+            )}
+          </button>
+
+          {/* Delete button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setConfirmDeleteOpen(true);
+            }}
+            disabled={isDeleting}
+            className="
+              w-11 h-11 rounded-xl
+              bg-destructive/10 text-destructive
+              flex items-center justify-center
+              transition-opacity
+              disabled:opacity-50
+              active:scale-95
+            "
+            aria-label="Delete record"
+          >
+            {isDeleting ? (
+              <span className="w-4 h-4 border-2 border-destructive/30 border-t-destructive rounded-full animate-spin" />
+            ) : (
+              <Trash2 size={18} />
+            )}
+          </button>
+        </div>
       </div>
 
+      {/* Red background confirmation dialog */}
+      <DeleteConfirmationDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        fileName={record.file.name}
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          setConfirmDeleteOpen(false);
+          handleDelete();
+        }}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
+
+      {/* Long-press context menu (kept for backwards compatibility) */}
       <FileContextMenu
         open={contextMenuOpen}
         onOpenChange={(open) => setContextMenuOpen(open)}
@@ -100,6 +155,8 @@ function FileItem({ record }: FileItemProps) {
           handleDownload();
           setContextMenuOpen(false);
         }}
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
       />
     </>
   );

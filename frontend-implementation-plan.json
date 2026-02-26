@@ -1,49 +1,43 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Open QR scanner on a dedicated full-screen receive page",
+  "title": "Save display name and show it on Transfer screen",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Create a new dedicated `/receive` route that renders a full-screen QR scanner experience with file receive UI, replacing the modal-based flow",
+      "summary": "Persist updated display name from ProfilePage to backend and immediately reflect in local query cache",
       "acceptanceCriteria": [
-        "A new `/receive` route exists and renders a dedicated full-screen page.",
-        "The page shows the camera viewfinder for scanning a QR code (reusing QRScannerModal logic).",
-        "After a successful scan, the file details and download UI (from QRReceiveDialog) are shown on the same screen without a separate modal.",
-        "A back/close button navigates the user back to the previous screen.",
-        "The scanner page is not a modal overlay on the dashboard."
+        "Clicking 'Save Changes' on ProfilePage triggers the update-profile mutation with the entered display name.",
+        "The mutation result updates the cached user profile query so the new name is immediately available without a page reload.",
+        "A success indicator (toast or inline message) is shown after the name is saved."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ReceivePage.tsx",
-          "operation": "create",
-          "description": "Create a new full-screen receive page component that integrates the QR scanner camera viewfinder and file receive UI on a single page. Use the qr-code/useQRScanner hook (verify the component's usage instructions before implementing) to access camera preview, scanning state, and QR results. After a successful scan, parse the session ID using frontend/src/utils/qrPayload.ts, fetch the transfer record via getTransferRecord backend capability, and display the file details inline with a download button. Include a back/close button in the top-left corner that navigates to the previous screen using router history. Ensure the camera preview has explicit dimensions (e.g., aspect-ratio wrapper or min-height) so it never collapses. Display proper error messages for camera failures and scanning errors. Reuse styling patterns from QRScannerModal.tsx and QRReceiveDialog.tsx but lay out the UI as a single continuous page flow rather than overlapping modals."
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Wire the Save Changes button to call the saveCallerUserProfile mutation from useQueries with the updated display name. After successful mutation, use queryClient.setQueryData to update the ['currentUserProfile'] cache entry immediately. Add a success toast or inline message using a toast notification or temporary state flag. Ensure the mutation invalidates ['currentUserProfile'] so dependent components refetch if needed."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Register the new `/receive` route in the TanStack Router configuration, importing the ReceivePage component and adding a Route entry for path '/receive' that renders <ReceivePage />. Place the route at the same nesting level as the existing /menu and /profile routes."
+          "description": "Ensure the useSaveCallerUserProfile mutation hook is configured to call actor.saveCallerUserProfile with the UserProfile parameter. Add onSuccess callback that invalidates the ['currentUserProfile'] query key via queryClient.invalidateQueries so the updated profile propagates app-wide. Verify the mutation returns void as per the backend interface."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Update the QR scanner trigger in TransferHistory and any other locations so that tapping the scan button navigates to the new `/receive` route instead of opening QRScannerModal",
+      "summary": "Display the current user's saved display name on the Transfer screen using cached profile data",
       "acceptanceCriteria": [
-        "Tapping the scan/receive QR button in TransferHistory navigates to `/receive` instead of opening a modal.",
-        "The existing QRScannerModal and QRReceiveDialog components are no longer used as modals in the receiver flow.",
-        "No regression in the sender QR code generation flow (QRCodeDialog remains unchanged)."
+        "The Transfer screen reads the authenticated user's display name from the cached profile query.",
+        "The display name is rendered visibly on the Transfer screen (e.g., 'Sending as: [Name]' or a greeting header).",
+        "After saving a new name on ProfilePage and navigating back to the Transfer screen, the updated name is shown without requiring an app reload.",
+        "If no name is set, a sensible fallback (e.g., 'Anonymous' or truncated principal) is shown."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/TransferHistory.tsx",
+          "path": "frontend/src/components/FileTransfer.tsx",
           "operation": "modify",
-          "description": "Replace the state-based modal opening logic (isScannerOpen, setIsScannerOpen) with navigation to the `/receive` route using the TanStack Router's useNavigate hook. Update the 'Receive via QR' button's onClick handler to call navigate({ to: '/receive' }) instead of opening the QRScannerModal. Remove the <QRScannerModal> and <QRReceiveDialog> components from the JSX since they are no longer needed in this flow. Keep the QRCodeDialog (sender flow) unchanged. Remove any state variables and handlers related to the scanner modal and receive dialog."
-        },
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Review the Dashboard component for any additional QR scanner triggers (such as floating action buttons or quick-access shortcuts) that may open the QRScannerModal. If found, update those triggers to navigate to `/receive` instead of opening a modal. Verify that no references to QRScannerModal or QRReceiveDialog remain in the receiver flow."
+          "description": "Import and call useGetCallerUserProfile from useQueries to fetch the current user's profile. Extract the displayName from the returned userProfile object. Add a visible UI element (e.g., a greeting header or sender label such as 'Sending as: [displayName]') near the top of the transfer form. If userProfile is null or displayName is empty, display a fallback label (e.g., 'Anonymous' or truncate the identity principal). Ensure the component re-renders when the profile query data updates so the new name appears immediately after saving on ProfilePage."
         }
       ]
     }

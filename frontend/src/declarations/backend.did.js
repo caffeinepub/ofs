@@ -104,6 +104,7 @@ export const idlService = IDL.Service({
       [ExternalBlob],
       [],
     ),
+  'deleteTransferRecord' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'getAIProcessingResult' : IDL.Func(
       [IDL.Text],
       [AIProcessingResult],
@@ -119,6 +120,11 @@ export const idlService = IDL.Service({
   'getFileMetadata' : IDL.Func([IDL.Text], [FileMetadata], ['query']),
   'getOnlineUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
   'getTransferHistory' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(TransferRecordData)],
+      ['query'],
+    ),
+  'getTransferHistoryByUser' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(TransferRecordData)],
       ['query'],
@@ -261,6 +267,7 @@ export const idlFactory = ({ IDL }) => {
         [ExternalBlob],
         [],
       ),
+    'deleteTransferRecord' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'getAIProcessingResult' : IDL.Func(
         [IDL.Text],
         [AIProcessingResult],
@@ -276,6 +283,11 @@ export const idlFactory = ({ IDL }) => {
     'getFileMetadata' : IDL.Func([IDL.Text], [FileMetadata], ['query']),
     'getOnlineUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
     'getTransferHistory' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(TransferRecordData)],
+        ['query'],
+      ),
+    'getTransferHistoryByUser' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(TransferRecordData)],
         ['query'],

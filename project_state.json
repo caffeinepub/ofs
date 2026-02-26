@@ -1,22 +1,22 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "A file transfer app with QR code scanning functionality. When a receiver scans a QR code, the scanner should open on a new screen to receive files.",
+  "summary": "App with profile settings, save changes functionality, and transfer screen that displays saved name.",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-create-a-new-dedicated-receive-route-page-in-the-router-that-renders-a-full-screen-qr-scanner-experience-this-page-should-display-the-camera-viewfinder-scan-a-qr-code-fetch-the-associated-transfer-record-and-show-the-file-receive-download-ui-all-without-overlaying-a-modal-on-top-of-the-existing-dashboard-the-page-should-include-a-back-close-button-that-navigates-the-user-back-to-the-previous-screen",
-      "title": "Create a new dedicated `/receive` route (page) in the router that renders a full-screen QR scanner experience. This page should display the camera viewfinder, scan a QR code, fetch the associated transfer record, and show the file receive/download UI — all without overlaying a modal on top of the existing dashboard. The page should include a back/close button that navigates the user back to the previous screen.",
+      "id": "feature-on-the-profilepage-after-the-user-clicks-save-changes-persist-the-updated-display-name-to-the-backend-and-immediately-reflect-the-new-name-in-the-local-query-cache-so-it-is-available-app-wide",
+      "title": "On the ProfilePage, after the user clicks 'Save Changes', persist the updated display name to the backend and immediately reflect the new name in the local query cache so it is available app-wide.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-qr-scanner-trigger-in-transferhistory-and-any-other-location-that-opens-the-qr-scanner-modal-so-that-tapping-the-scan-button-navigates-to-the-new-receive-route-instead-of-opening-qrscannermodal-as-a-modal-dialog",
-      "title": "Update the QR scanner trigger in TransferHistory (and any other location that opens the QR scanner modal) so that tapping the scan button navigates to the new `/receive` route instead of opening QRScannerModal as a modal dialog.",
+      "id": "feature-on-the-transfer-screen-filetransfer-component-inside-the-dashboard-s-transfer-tab-display-the-current-user-s-saved-display-name-for-example-as-a-greeting-or-sender-label-using-the-profile-data-from-the-react-query-user-profile-hook",
+      "title": "On the Transfer screen (FileTransfer component inside the Dashboard's transfer tab), display the current user's saved display name — for example, as a greeting or sender label — using the profile data from the React Query user-profile hook.",
       "reqIds": [
         "REQ-2"
       ],
@@ -26,13 +26,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "When receiver scans QR code, open scanner on a new dedicated screen to receive files",
+      "summary": "After clicking 'Save Changes', save the name and display it on the transfer screen",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "OFS File Share",
+  "projectName": "Save display name and show it on Transfer screen",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

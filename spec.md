@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the modal-based QR scanner flow with a dedicated full-screen `/receive` page so that receivers navigate to a new route instead of seeing a modal overlay.
+**Goal:** Persist the display name when saving on the Profile page and show it on the Transfer screen.
 
 **Planned changes:**
-- Add a new `/receive` route that renders a full-screen page with the camera viewfinder and QR scanning logic (reusing existing QRScannerModal logic).
-- After a successful scan, display the file details and download UI inline on the same `/receive` page (reusing QRReceiveDialog logic) instead of opening a separate modal.
-- Include a back/close button on the `/receive` page that navigates the user back to the previous screen.
-- Update the scan/receive QR button in TransferHistory (and any other trigger locations) to navigate to `/receive` instead of opening QRScannerModal as a modal dialog.
+- On ProfilePage, wire the "Save Changes" button to call an update-profile backend mutation that persists the display name.
+- After a successful save, update the React Query user-profile cache so the new name is immediately available app-wide.
+- Show a success toast or inline message after the name is saved.
+- On the Transfer screen, read the current user's display name from the cached profile query and render it visibly (e.g., "Sending as: [Name]"), with a fallback to "Anonymous" or a truncated principal if no name is set.
 
-**User-visible outcome:** When a receiver taps the scan button, they are taken to a dedicated full-screen camera scanner page. After scanning a QR code, the file download UI appears on that same screen. The existing sender QR code generation flow is unchanged.
+**User-visible outcome:** Users can save a display name on the Profile page and immediately see it reflected on the Transfer screen without reloading the app.

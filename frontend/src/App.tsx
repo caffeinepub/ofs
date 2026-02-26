@@ -3,7 +3,6 @@ import { RouterProvider, createRouter, createRoute, createRootRoute, useNavigate
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
 import Header from './components/Header';
-import Footer from './components/Footer';
 import ProfileSetup from './components/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import MobileMenu from './pages/MobileMenu';
@@ -29,7 +28,6 @@ function AuthenticatedLayout() {
       <main className="flex-1 pb-20">
         <Dashboard />
       </main>
-      <Footer />
     </div>
   );
 }
@@ -46,7 +44,6 @@ function MenuLayout() {
           onClose={() => navigate({ to: '/' })}
         />
       </main>
-      <Footer />
     </div>
   );
 }
@@ -60,7 +57,6 @@ function ProfileLayout() {
       <main className="flex-1">
         <ProfilePage onBack={() => navigate({ to: '/menu' })} />
       </main>
-      <Footer />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T10:44:46.122Z",
+  "generatedAt": "2026-02-26T11:54:38.962Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,39 +12,39 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Create a new dedicated `/receive` route (page) in the router that renders a full-screen QR scanner experience. This page should display the camera viewfinder, scan a QR code, fetch the associated transfer record, and show the file receive/download UI — all without overlaying a modal on top of the existing dashboard. The page should include a back/close button that navigates the user back to the previous screen.",
+        "summary": "On the ProfilePage, after the user clicks 'Save Changes', persist the updated display name to the backend and immediately reflect the new name in the local query cache so it is available app-wide.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ReceivePage.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ReceivePage.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the QR scanner trigger in TransferHistory (and any other location that opens the QR scanner modal) so that tapping the scan button navigates to the new `/receive` route instead of opening QRScannerModal as a modal dialog.",
+        "summary": "On the Transfer screen (FileTransfer component inside the Dashboard's transfer tab), display the current user's saved display name — for example, as a greeting or sender label — using the profile data from the React Query user-profile hook.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/TransferHistory.tsx",
-          "frontend/src/pages/Dashboard.tsx"
+          "frontend/src/components/FileTransfer.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/TransferHistory.tsx"
+          "frontend/src/components/FileTransfer.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/TransferHistory.tsx",
-    "frontend/src/pages/ReceivePage.tsx",
+    "frontend/src/components/FileTransfer.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/ProfilePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

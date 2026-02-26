@@ -86,6 +86,7 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'compressImage' : ActorMethod<[string, ExternalBlob, bigint], ExternalBlob>,
+  'deleteTransferRecord' : ActorMethod<[string], boolean>,
   'getAIProcessingResult' : ActorMethod<[string], AIProcessingResult>,
   'getAllAIProcessingResults' : ActorMethod<[], Array<AIProcessingResult>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
@@ -93,6 +94,10 @@ export interface _SERVICE {
   'getFileMetadata' : ActorMethod<[string], FileMetadata>,
   'getOnlineUsers' : ActorMethod<[], Array<Principal>>,
   'getTransferHistory' : ActorMethod<[Principal], Array<TransferRecordData>>,
+  'getTransferHistoryByUser' : ActorMethod<
+    [Principal],
+    Array<TransferRecordData>
+  >,
   'getTransferRecord' : ActorMethod<[string], [] | [TransferRecord]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,

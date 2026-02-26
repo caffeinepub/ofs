@@ -67,6 +67,7 @@ export enum Variant_imageCompression_fileRecognition {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     compressImage(id: string, image: ExternalBlob, quality: bigint): Promise<ExternalBlob>;
+    deleteTransferRecord(id: string): Promise<boolean>;
     getAIProcessingResult(id: string): Promise<AIProcessingResult>;
     getAllAIProcessingResults(): Promise<Array<AIProcessingResult>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -74,6 +75,7 @@ export interface backendInterface {
     getFileMetadata(fileId: string): Promise<FileMetadata>;
     getOnlineUsers(): Promise<Array<Principal>>;
     getTransferHistory(user: Principal): Promise<Array<TransferRecordData>>;
+    getTransferHistoryByUser(user: Principal): Promise<Array<TransferRecordData>>;
     getTransferRecord(id: string): Promise<TransferRecord | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;

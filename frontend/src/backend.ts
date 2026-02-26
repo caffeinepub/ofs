@@ -160,6 +160,7 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     compressImage(id: string, image: ExternalBlob, quality: bigint): Promise<ExternalBlob>;
+    deleteTransferRecord(id: string): Promise<boolean>;
     getAIProcessingResult(id: string): Promise<AIProcessingResult>;
     getAllAIProcessingResults(): Promise<Array<AIProcessingResult>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -167,6 +168,7 @@ export interface backendInterface {
     getFileMetadata(fileId: string): Promise<FileMetadata>;
     getOnlineUsers(): Promise<Array<Principal>>;
     getTransferHistory(user: Principal): Promise<Array<TransferRecordData>>;
+    getTransferHistoryByUser(user: Principal): Promise<Array<TransferRecordData>>;
     getTransferRecord(id: string): Promise<TransferRecord | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
@@ -306,6 +308,20 @@ export class Backend implements backendInterface {
             return from_candid_ExternalBlob_n11(this._uploadFile, this._downloadFile, result);
         }
     }
+    async deleteTransferRecord(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteTransferRecord(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteTransferRecord(arg0);
+            return result;
+        }
+    }
     async getAIProcessingResult(arg0: string): Promise<AIProcessingResult> {
         if (this.processError) {
             try {
@@ -401,6 +417,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getTransferHistory(arg0);
+            return from_candid_vec_n23(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getTransferHistoryByUser(arg0: Principal): Promise<Array<TransferRecordData>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTransferHistoryByUser(arg0);
+                return from_candid_vec_n23(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTransferHistoryByUser(arg0);
             return from_candid_vec_n23(this._uploadFile, this._downloadFile, result);
         }
     }

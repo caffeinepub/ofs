@@ -2,11 +2,8 @@ import Map "mo:core/Map";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Array "mo:core/Array";
-import Nat "mo:core/Nat";
-import Text "mo:core/Text";
-import Time "mo:core/Time";
 import Int "mo:core/Int";
-import Iter "mo:core/Iter";
+import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
@@ -193,6 +190,26 @@ actor {
     transferRecords.add(id, record);
   };
 
+  public shared ({ caller }) func deleteTransferRecord(id : Text) : async Bool {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can delete transfer records");
+    };
+
+    // Retrieve the transfer record
+    switch (transferRecords.get(id)) {
+      case (null) { false };
+      case (?record) {
+        // Check if caller is either the sender or receiver
+        if (caller != record.sender and caller != record.receiver) {
+          Runtime.trap("Unauthorized: Only sender or receiver can delete this transfer record");
+        };
+
+        transferRecords.remove(id);
+        true;
+      };
+    };
+  };
+
   public query ({ caller }) func getTransferHistory(user : Principal) : async [TransferRecordData] {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view transfer history");
@@ -372,4 +389,25 @@ actor {
     };
   };
 
+  // Explicitly, a delete function for transfer records.
+  public query ({ caller }) func getTransferHistoryByUser(user : Principal) : async [TransferRecordData] {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view transfer history");
+    };
+
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own transfer history");
+    };
+
+    var userRecords : [TransferRecord] = [];
+
+    for ((_, record) in transferRecords.entries()) {
+      if (record.sender == user or record.receiver == user) {
+        userRecords := userRecords.concat([record]);
+      };
+    };
+
+    // Sort by time
+    userRecords.sort(TransferRecord.compareByTime);
+  };
 };
