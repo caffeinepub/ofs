@@ -1,4 +1,4 @@
-import { BRANDING } from '../constants/branding';
+import { BRANDING } from "../constants/branding";
 
 export default function Footer() {
   return (

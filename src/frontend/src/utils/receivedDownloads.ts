@@ -1,13 +1,21 @@
-import type { TransferRecordData } from '../backend';
-import type { Principal } from '@icp-sdk/core/principal';
+import type { Principal } from "@icp-sdk/core/principal";
+import type { TransferRecordData } from "../backend";
 
 /**
  * Detect if a file is an installable package based on extension
  */
 export function isInstallablePackage(fileName: string): boolean {
-  const installableExtensions = ['.apk', '.exe', '.msi', '.dmg', '.pkg', '.deb', '.rpm'];
+  const installableExtensions = [
+    ".apk",
+    ".exe",
+    ".msi",
+    ".dmg",
+    ".pkg",
+    ".deb",
+    ".rpm",
+  ];
   const lowerFileName = fileName.toLowerCase();
-  return installableExtensions.some(ext => lowerFileName.endsWith(ext));
+  return installableExtensions.some((ext) => lowerFileName.endsWith(ext));
 }
 
 /**
@@ -17,7 +25,8 @@ export function formatFileSize(bytes: bigint): string {
   const size = Number(bytes);
   if (size < 1024) return `${size} B`;
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-  if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  if (size < 1024 * 1024 * 1024)
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
@@ -34,14 +43,14 @@ export function formatTimestamp(time: bigint): string {
  */
 export function filterReceivedTransfers(
   transferHistory: TransferRecordData[],
-  currentPrincipal: Principal | null | undefined
+  currentPrincipal: Principal | null | undefined,
 ): TransferRecordData[] {
   if (!currentPrincipal) return [];
-  
+
   return transferHistory.filter(
     (record) =>
       record.success &&
-      record.receiver.toString() === currentPrincipal.toString()
+      record.receiver.toString() === currentPrincipal.toString(),
   );
 }
 
@@ -50,13 +59,13 @@ export function filterReceivedTransfers(
  */
 export function filterSentTransfers(
   transferHistory: TransferRecordData[],
-  currentPrincipal: Principal | null | undefined
+  currentPrincipal: Principal | null | undefined,
 ): TransferRecordData[] {
   if (!currentPrincipal) return [];
-  
+
   return transferHistory.filter(
     (record) =>
       record.success &&
-      record.sender.toString() === currentPrincipal.toString()
+      record.sender.toString() === currentPrincipal.toString(),
   );
 }

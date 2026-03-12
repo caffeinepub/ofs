@@ -19,7 +19,7 @@ export function parseQRPayload(payload: string): string | null {
   // Try to parse as URL first
   try {
     const url = new URL(trimmed);
-    const sessionId = url.searchParams.get('session');
+    const sessionId = url.searchParams.get("session");
     if (sessionId) {
       return sessionId;
     }

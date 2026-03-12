@@ -1,94 +1,86 @@
-import { useGetOnlineUsers, useGetMultipleUserProfiles } from '../hooks/useQueries';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import SkeletonCard from './SkeletonCard';
-import EmptyState from './EmptyState';
+import { User, Wifi, WifiOff } from "lucide-react";
+import React from "react";
+import { useLocalProfile } from "../hooks/useLocalProfile";
+import {
+  useGetMultipleUserProfiles,
+  useGetOnlineUsers,
+} from "../hooks/useQueries";
 
 export default function OnlineUsers() {
-  const { identity } = useInternetIdentity();
-  const { data: onlineUsers, isLoading, refetch } = useGetOnlineUsers();
-  const currentUserPrincipal = identity?.getPrincipal().toString();
-  const availableUsers = onlineUsers?.filter((user) => user.toString() !== currentUserPrincipal) || [];
-  
-  const { data: userProfilesMap, isLoading: profilesLoading } = useGetMultipleUserProfiles(availableUsers);
-
-  const { isRefreshing, pullToRefreshProps } = usePullToRefresh({
-    onRefresh: async () => {
-      await refetch();
-    },
-  });
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const { data: onlinePrincipals = [], isLoading } = useGetOnlineUsers();
+  const { data: profiles = {} } = useGetMultipleUserProfiles(onlinePrincipals);
+  const { profile: localProfile } = useLocalProfile();
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4 pb-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Online Users</h2>
-          <p className="text-sm text-muted-foreground">Users available for file sharing</p>
+        <h2 className="text-2xl font-bold tracking-tight">Online Users</h2>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          {onlinePrincipals.length} online
         </div>
-        {isRefreshing && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
       </div>
 
-      <div {...pullToRefreshProps} className="space-y-3 touch-pan-y">
-        {isLoading || profilesLoading ? (
-          <>
-            <SkeletonCard height="80px" />
-            <SkeletonCard height="80px" />
-            <SkeletonCard height="80px" />
-          </>
-        ) : availableUsers.length === 0 ? (
-          <EmptyState
-            imagePath="/assets/generated/empty-users.dim_300x200.png"
-            title="No users online"
-            description="Other users will appear here when they're online and available for file sharing."
-          />
-        ) : (
-          availableUsers.map((principal) => {
-            const profile = userProfilesMap?.[principal.toString()];
+      {isLoading ? (
+        <div className="flex flex-col gap-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-16 rounded-2xl bg-muted/50 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : onlinePrincipals.length === 0 ? (
+        <div
+          data-ocid="users.empty_state"
+          className="flex flex-col items-center justify-center py-16 gap-3 text-center"
+        >
+          <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
+            <WifiOff className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="font-semibold text-foreground">No users online</p>
+          <p className="text-sm text-muted-foreground">
+            Share the app link with others to see them here
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {onlinePrincipals.map((principal, idx) => {
+            const profileData = profiles[principal.toString()];
+            const name =
+              (profileData as { displayName?: string } | null)?.displayName ||
+              `User ${idx + 1}`;
+            const isYou = localProfile?.displayName === name;
             return (
-              <Card key={principal.toString()} className="overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-14 w-14">
-                      <AvatarImage 
-                        src={profile?.avatarUrl} 
-                        alt={profile?.displayName}
-                        loading="lazy"
-                      />
-                      <AvatarFallback className="text-lg">
-                        {profile?.displayName ? getInitials(profile.displayName) : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">
-                        {profile?.displayName || principal.toString().slice(0, 12) + '...'}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          <span className="mr-1 h-2 w-2 rounded-full bg-green-500" />
-                          Online
-                        </Badge>
-                      </div>
-                    </div>
+              <div
+                key={principal.toString()}
+                data-ocid={`users.item.${idx + 1}`}
+                className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-base text-foreground truncate">
+                    {name}
+                    {isYou && (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        (You)
+                      </span>
+                    )}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Wifi className="w-3 h-3 text-green-500" />
+                    <span className="text-xs text-green-500 font-medium">
+                      Online
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
     </div>
   );
 }

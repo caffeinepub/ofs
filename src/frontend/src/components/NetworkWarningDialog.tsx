@@ -7,9 +7,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { AlertTriangle } from 'lucide-react';
-import { formatFileSize } from '../utils/fileSizeValidation';
+} from "@/components/ui/alert-dialog";
+import { AlertTriangle } from "lucide-react";
+import { formatFileSize } from "../utils/fileSizeValidation";
 
 interface NetworkWarningDialogProps {
   isOpen: boolean;
@@ -40,20 +40,20 @@ export default function NetworkWarningDialog({
           </div>
           <AlertDialogDescription className="space-y-3 text-left">
             <p>
-              You're about to upload a <strong>{formatFileSize(fileSize)}</strong> file on a{' '}
+              You're about to upload a{" "}
+              <strong>{formatFileSize(fileSize)}</strong> file on a{" "}
               <strong>{connectionType.toUpperCase()}</strong> connection
-              {isMetered && ' with data saver enabled'}.
+              {isMetered && " with data saver enabled"}.
             </p>
-            <p className="text-sm">
-              This may result in:
-            </p>
+            <p className="text-sm">This may result in:</p>
             <ul className="text-sm list-disc list-inside space-y-1 ml-2">
               <li>Slow upload speeds</li>
               <li>Higher data usage</li>
               <li>Potential timeout errors</li>
             </ul>
             <p className="text-sm font-medium">
-              Consider using the AI compression feature to reduce file size before uploading.
+              Consider using the AI compression feature to reduce file size
+              before uploading.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>

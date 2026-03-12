@@ -1,454 +1,530 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetOnlineUsers, useUploadFile, useRecordTransfer, useGetCallerUserProfile, useGetMultipleUserProfiles } from '../hooks/useQueries';
-import { useOnlineStatus } from '../utils/useOnlineStatus';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, X, FileIcon, Loader2, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { ExternalBlob } from '../backend';
-import type { Principal } from '@icp-sdk/core/principal';
-import { useHapticFeedback } from '../hooks/useHapticFeedback';
-import { useNetworkInfo } from '../hooks/useNetworkInfo';
-import NetworkWarningDialog from './NetworkWarningDialog';
-import { validateFileSize } from '../utils/fileSizeValidation';
-import EmptyState from './EmptyState';
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import {
+  ChevronDown,
+  FileIcon,
+  Loader2,
+  QrCode,
+  ScanLine,
+  Send,
+  Share2,
+  Upload,
+  User,
+  X,
+} from "lucide-react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { ExternalBlob } from "../backend";
+import { useTransfer } from "../contexts/TransferContext";
+import { useActor } from "../hooks/useActor";
+import { useHapticFeedback } from "../hooks/useHapticFeedback";
+import { useLocalHistory } from "../hooks/useLocalHistory";
+import { useLocalProfile } from "../hooks/useLocalProfile";
+import {
+  useGetMultipleUserProfiles,
+  useGetOnlineUsers,
+} from "../hooks/useQueries";
+import { validateFileSize } from "../utils/fileSizeValidation";
+import QRCodeDialog from "./QRCodeDialog";
 
-interface FileWithProgress {
-  file: File;
-  progress: number;
-  status: 'pending' | 'uploading' | 'compressing' | 'transferring' | 'complete' | 'error';
-  id: string;
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+interface SelectedUser {
+  name: string;
+  principal: string;
+}
+
+// ---- Online Users Dropdown ----
+interface OnlineUsersDropdownProps {
+  selectedUser: SelectedUser | null;
+  onSelect: (user: SelectedUser) => void;
+}
+
+function OnlineUsersDropdown({
+  selectedUser,
+  onSelect,
+}: OnlineUsersDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const { data: onlinePrincipals = [], isLoading } = useGetOnlineUsers();
+  const { data: profiles = {} } = useGetMultipleUserProfiles(onlinePrincipals);
+
+  const userEntries = onlinePrincipals.map((p, idx) => {
+    const profileData = profiles[p.toString()] as {
+      displayName?: string;
+    } | null;
+    return {
+      key: p.toString(),
+      name: profileData?.displayName || `User ${idx + 1}`,
+      idx,
+    };
+  });
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        Send To
+      </p>
+      <div className="relative">
+        <button
+          type="button"
+          data-ocid="transfer.users.toggle"
+          onClick={() => setOpen((v) => !v)}
+          className="w-full flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-4 text-left shadow-sm transition-colors hover:bg-muted/40"
+        >
+          <div className="flex items-center gap-3">
+            <User className="w-5 h-5 text-muted-foreground shrink-0" />
+            <span
+              className={
+                selectedUser
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground"
+              }
+            >
+              {selectedUser?.name ||
+                (isLoading ? "Loading users…" : "Select a user")}
+            </span>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {open && (
+          <div
+            data-ocid="transfer.users.dropdown_menu"
+            className="absolute top-full left-0 right-0 z-50 mt-1 rounded-2xl border border-border bg-card shadow-lg overflow-hidden"
+          >
+            {userEntries.length === 0 ? (
+              <div className="px-4 py-4 text-sm text-muted-foreground text-center">
+                No users online right now
+              </div>
+            ) : (
+              userEntries.map(({ key, name, idx }) => (
+                <button
+                  key={key}
+                  type="button"
+                  data-ocid={`transfer.users.item.${idx + 1}`}
+                  onClick={() => {
+                    onSelect({ name, principal: key });
+                    setOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium hover:bg-muted/50 transition-colors border-b border-border last:border-b-0"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="text-foreground">{name}</span>
+                  <span className="ml-auto w-2 h-2 rounded-full bg-green-500" />
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---- Main FileTransfer Component ----
 interface FileTransferProps {
-  prefilledFile?: { file: File; source: string } | null;
-  onFileProcessed?: () => void;
+  onNavigateToReceived?: () => void;
 }
 
-export default function FileTransfer({ prefilledFile, onFileProcessed }: FileTransferProps) {
-  const { identity } = useInternetIdentity();
-  const { data: onlineUsers } = useGetOnlineUsers();
-  const { data: currentUserProfile } = useGetCallerUserProfile();
-  const uploadFile = useUploadFile();
-  const recordTransfer = useRecordTransfer();
-  const isOnline = useOnlineStatus();
-  const { triggerMedium, triggerSuccess } = useHapticFeedback();
-  const networkInfo = useNetworkInfo();
+export default function FileTransfer({
+  onNavigateToReceived: _onNavigateToReceived,
+}: FileTransferProps) {
+  const { profile } = useLocalProfile();
+  const { addSent } = useLocalHistory();
+  const { pendingFile, clearPendingFile } = useTransfer();
+  const { triggerLight, triggerSuccess } = useHapticFeedback();
+  const { actor } = useActor();
 
-  const [selectedFiles, setSelectedFiles] = useState<FileWithProgress[]>([]);
-  const [selectedReceiver, setSelectedReceiver] = useState<string>('');
-  const [isTransferring, setIsTransferring] = useState(false);
-  const [showNetworkWarning, setShowNetworkWarning] = useState(false);
-  const [pendingTransfer, setPendingTransfer] = useState(false);
+  const senderName = profile?.displayName || "Anonymous";
 
-  const isAuthenticated = !!identity;
-  const currentUserPrincipal = identity?.getPrincipal().toString();
-  const availableReceivers = onlineUsers?.filter((user) => user.toString() !== currentUserPrincipal) || [];
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedUser, setSelectedUser] = useState<SelectedUser | null>(null);
+  const [transferError, setTransferError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isSendingToUser, setIsSendingToUser] = useState(false);
+  const [isUploadingQR, setIsUploadingQR] = useState(false);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrSessionId, setQrSessionId] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch profiles for all available receivers
-  const { data: receiverProfilesMap } = useGetMultipleUserProfiles(availableReceivers);
-
-  // Handle prefilled file from AI compression
   useEffect(() => {
-    if (prefilledFile) {
-      const newFile: FileWithProgress = {
-        file: prefilledFile.file,
-        progress: 0,
-        status: 'pending',
-        id: `${Date.now()}-${Math.random()}`,
-      };
-      setSelectedFiles([newFile]);
-      
-      if (prefilledFile.source === 'compression') {
-        toast.success('Compressed image added! Select a receiver to send.');
+    if (pendingFile) {
+      const validation = validateFileSize(pendingFile.size);
+      if (validation.type !== "error") {
+        setSelectedFile(pendingFile);
+        setTransferError(null);
       }
-      
-      if (onFileProcessed) {
-        onFileProcessed();
-      }
+      clearPendingFile();
     }
-  }, [prefilledFile, onFileProcessed]);
+  }, [pendingFile, clearPendingFile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      
-      // Validate file sizes
-      for (const file of files) {
-        const validation = validateFileSize(file.size);
-        
-        if (validation.type === 'error') {
-          toast.error('File too large', {
-            description: validation.message,
-          });
-          e.target.value = '';
-          return;
-        }
-        
-        if (validation.type === 'warning') {
-          toast.warning('Large file detected', {
-            description: validation.message,
-          });
-        }
-      }
-      
-      addFiles(files);
-      triggerMedium();
-    }
-  };
-
-  const addFiles = (files: File[]) => {
-    const newFiles: FileWithProgress[] = files.map((file) => ({
-      file,
-      progress: 0,
-      status: 'pending',
-      id: `${Date.now()}-${Math.random()}`,
-    }));
-    setSelectedFiles((prev) => [...prev, ...newFiles]);
-  };
-
-  const removeFile = (id: string) => {
-    setSelectedFiles((prev) => prev.filter((f) => f.id !== id));
-  };
-
-  const simulateTransfer = async (fileWithProgress: FileWithProgress) => {
-    const { file, id } = fileWithProgress;
-
-    setSelectedFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, status: 'uploading' as const, progress: 10 } : f))
-    );
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (file.type.startsWith('image/')) {
-      setSelectedFiles((prev) =>
-        prev.map((f) => (f.id === id ? { ...f, status: 'compressing' as const, progress: 30 } : f))
-      );
-      await new Promise((resolve) => setTimeout(resolve, 800));
-    }
-
-    setSelectedFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, status: 'transferring' as const, progress: 50 } : f))
-    );
-
-    for (let i = 50; i <= 90; i += 10) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setSelectedFiles((prev) => prev.map((f) => (f.id === id ? { ...f, progress: i } : f)));
-    }
-
-    setSelectedFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, status: 'complete' as const, progress: 100 } : f))
-    );
-  };
-
-  const checkNetworkAndProceed = () => {
-    if (selectedFiles.length === 0) return;
-
-    const largestFile = selectedFiles.reduce((max, f) => 
-      f.file.size > max.file.size ? f : max
-    );
-
-    const shouldWarn = 
-      networkInfo.isSupported &&
-      largestFile.file.size > 5 * 1024 * 1024 && // 5MB
-      (networkInfo.isSlow || networkInfo.isMetered);
-
-    if (shouldWarn) {
-      setShowNetworkWarning(true);
-      setPendingTransfer(true);
-    } else {
-      performTransfer();
-    }
-  };
-
-  const handleNetworkWarningProceed = () => {
-    setShowNetworkWarning(false);
-    setPendingTransfer(false);
-    performTransfer();
-  };
-
-  const handleNetworkWarningCancel = () => {
-    setShowNetworkWarning(false);
-    setPendingTransfer(false);
-  };
-
-  const performTransfer = async () => {
-    if (!isAuthenticated || !identity) {
-      toast.error('Login required for online transfers');
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validation = validateFileSize(file.size);
+    if (validation.type === "error") {
+      setTransferError(validation.message);
       return;
     }
+    triggerLight();
+    setTransferError(null);
+    setSelectedFile(file);
+  };
 
-    if (!isOnline) {
-      toast.error('This feature requires an internet connection');
+  const readFileAsBytes = (file: File): Promise<Uint8Array<ArrayBuffer>> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) =>
+        resolve(
+          new Uint8Array(
+            e.target?.result as ArrayBuffer,
+          ) as Uint8Array<ArrayBuffer>,
+        );
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+
+  // Share via QR Code — upload then show QR
+  const handleShareQR = async () => {
+    if (!selectedFile || !actor) {
+      toast.error("Please select a file first");
       return;
     }
-
-    if (!selectedReceiver) {
-      toast.error('Please select a receiver');
-      return;
-    }
-
-    if (selectedFiles.length === 0) {
-      toast.error('Please select files to transfer');
-      return;
-    }
-
-    setIsTransferring(true);
-
+    setIsUploadingQR(true);
+    setUploadProgress(0);
     try {
-      const startTime = Date.now();
-      const senderPrincipal = identity.getPrincipal();
-      const receiverPrincipal = availableReceivers.find(u => u.toString() === selectedReceiver);
-
-      if (!receiverPrincipal) {
-        throw new Error('Receiver not found');
-      }
-
-      // Process each file
-      for (const fileWithProgress of selectedFiles) {
-        if (fileWithProgress.status !== 'pending') continue;
-
-        try {
-          // Simulate transfer progress
-          await simulateTransfer(fileWithProgress);
-
-          // Upload file to backend
-          const arrayBuffer = await fileWithProgress.file.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          const blob = ExternalBlob.fromBytes(uint8Array);
-
-          await uploadFile.mutateAsync({
-            id: fileWithProgress.id,
-            name: fileWithProgress.file.name,
-            size: BigInt(fileWithProgress.file.size),
-            fileType: fileWithProgress.file.type,
-            blob,
-          });
-
-          // Record the transfer so receiver can see it
-          const transferDuration = Date.now() - startTime;
-          await recordTransfer.mutateAsync({
-            id: `transfer-${fileWithProgress.id}`,
-            sender: senderPrincipal,
-            receiver: receiverPrincipal,
-            file: {
-              id: fileWithProgress.id,
-              name: fileWithProgress.file.name,
-              size: BigInt(fileWithProgress.file.size),
-              fileType: fileWithProgress.file.type,
-              uploader: senderPrincipal,
-              uploadTime: BigInt(Date.now()) * BigInt(1000000),
-              blob,
-            },
-            duration: BigInt(transferDuration),
-            success: true,
-          });
-
-          triggerSuccess();
-        } catch (error: any) {
-          console.error('Transfer error:', error);
-          setSelectedFiles((prev) =>
-            prev.map((f) => (f.id === fileWithProgress.id ? { ...f, status: 'error' as const } : f))
-          );
-          toast.error(`Failed to transfer ${fileWithProgress.file.name}`);
-        }
-      }
-
-      const successCount = selectedFiles.filter(f => f.status === 'complete').length;
-      if (successCount > 0) {
-        toast.success(`Successfully transferred ${successCount} file(s)`);
-        setSelectedFiles([]);
-        setSelectedReceiver('');
-      }
-    } catch (error: any) {
-      console.error('Transfer error:', error);
-      toast.error('Transfer failed', {
-        description: error.message || 'Please try again',
+      const bytes = await readFileAsBytes(selectedFile);
+      const id = `file-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const blob = ExternalBlob.fromBytes(bytes).withUploadProgress((pct) =>
+        setUploadProgress(pct),
+      );
+      await actor.uploadFile(
+        id,
+        selectedFile.name,
+        BigInt(selectedFile.size),
+        selectedFile.type || "application/octet-stream",
+        blob,
+      );
+      triggerSuccess();
+      addSent({
+        id: `sent-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type || "application/octet-stream",
+        peerName: "Via QR Code",
+        timestamp: Date.now(),
       });
+      setQrSessionId(id);
+      setQrDialogOpen(true);
+    } catch (e) {
+      console.error("QR upload failed:", e);
+      toast.error("Upload failed. Please try again.");
     } finally {
-      setIsTransferring(false);
+      setIsUploadingQR(false);
+      setUploadProgress(0);
     }
   };
 
-  const handleTransfer = () => {
-    checkNetworkAndProceed();
+  // Share to selected user
+  const handleShareToUser = async () => {
+    if (!selectedFile) {
+      toast.error("Please select a file first");
+      return;
+    }
+    if (!selectedUser) {
+      toast.error("Please select a user to send to");
+      return;
+    }
+    if (!actor) {
+      toast.error("Not connected. Please wait.");
+      return;
+    }
+    setIsSendingToUser(true);
+    setUploadProgress(0);
+    const startTime = Date.now();
+    try {
+      const bytes = await readFileAsBytes(selectedFile);
+      const id = `file-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const blob = ExternalBlob.fromBytes(bytes).withUploadProgress((pct) =>
+        setUploadProgress(pct),
+      );
+      await actor.uploadFile(
+        id,
+        selectedFile.name,
+        BigInt(selectedFile.size),
+        selectedFile.type || "application/octet-stream",
+        blob,
+      );
+      const duration = BigInt(Date.now() - startTime);
+      try {
+        const callerProfile = await actor.getCallerUserProfile();
+        const onlinePrincipals = await actor.getOnlineUsers();
+        const receiverPrincipal = onlinePrincipals.find(
+          (p) => p.toString() === selectedUser.principal,
+        );
+        if (receiverPrincipal && callerProfile !== null) {
+          const fileMetadata = await actor.getFileMetadata(id);
+          await actor.recordTransfer(
+            `transfer-${Date.now()}`,
+            fileMetadata.uploader,
+            receiverPrincipal,
+            fileMetadata,
+            duration,
+            true,
+          );
+        }
+      } catch (e) {
+        console.warn("recordTransfer failed (non-fatal):", e);
+      }
+      triggerSuccess();
+      addSent({
+        id: `sent-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type || "application/octet-stream",
+        peerName: selectedUser.name,
+        timestamp: Date.now(),
+      });
+      toast.success(`File sent to ${selectedUser.name}!`);
+      setSelectedFile(null);
+      setSelectedUser(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (e) {
+      console.error("Send to user failed:", e);
+      toast.error("Failed to send file. Please try again.");
+    } finally {
+      setIsSendingToUser(false);
+      setUploadProgress(0);
+    }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  // Web Share API fallback
+  const handleWebShare = async () => {
+    if (!selectedFile) return;
+    try {
+      await navigator.share({
+        files: [selectedFile],
+        title: selectedFile.name,
+      });
+      triggerSuccess();
+      addSent({
+        id: `sent-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type || "application/octet-stream",
+        peerName: "Via Device Share",
+        timestamp: Date.now(),
+      });
+      toast.success("File shared!");
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (e) {
+      if (e instanceof Error && e.name !== "AbortError") {
+        toast.error("Share failed");
+      }
+    }
   };
 
-  const hasNoActivity = selectedFiles.length === 0 && !isTransferring;
+  const canWebShare =
+    typeof navigator !== "undefined" &&
+    "share" in navigator &&
+    typeof navigator.canShare === "function" &&
+    !!selectedFile &&
+    navigator.canShare({ files: [selectedFile] });
 
-  if (hasNoActivity) {
-    return (
-      <>
-        <EmptyState
-          imagePath="/assets/generated/empty-transfer.dim_300x200.png"
-          title="No files selected"
-          description="Select a file to start transferring to other users"
-          actionLabel="Select File"
-          onAction={() => document.getElementById('file-input')?.click()}
-        />
-        <input
-          id="file-input"
-          type="file"
-          multiple
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-      </>
-    );
-  }
+  const isUploading = isSendingToUser || isUploadingQR;
 
   return (
     <>
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">File Transfer</h2>
-          {currentUserProfile?.displayName && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Sending as <span className="font-medium text-foreground">{currentUserProfile.displayName}</span>
+      <div className="space-y-5 pb-6">
+        {/* SENDING AS card */}
+        <div
+          className="flex items-center gap-3 rounded-2xl bg-card border border-border px-4 py-3 shadow-sm"
+          data-ocid="transfer.section"
+        >
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <User className="w-5 h-5 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Sending as
             </p>
-          )}
-          <p className="text-sm text-muted-foreground">Send files to online users</p>
+            <p className="font-bold text-base text-foreground truncate">
+              {senderName}
+            </p>
+          </div>
         </div>
 
-        <Card className="z-[40]">
-          <CardHeader>
-            <CardTitle>Select Files</CardTitle>
-            <CardDescription>Choose files to transfer</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <input
-                id="file-input-main"
-                type="file"
-                multiple
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('file-input-main')?.click()}
-                disabled={isTransferring}
-                className="w-full h-14 text-base"
-              >
-                <Upload className="mr-2 h-5 w-5" />
-                Select Files
-              </Button>
-            </div>
+        {/* Online Users Dropdown */}
+        <OnlineUsersDropdown
+          selectedUser={selectedUser}
+          onSelect={setSelectedUser}
+        />
 
-            {selectedFiles.length > 0 && (
-              <div className="space-y-3 mt-4">
-                {selectedFiles.map((fileWithProgress) => (
-                  <div key={fileWithProgress.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileIcon className="h-5 w-5 text-muted-foreground shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{fileWithProgress.file.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(fileWithProgress.file.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                      {fileWithProgress.status === 'complete' ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                      ) : fileWithProgress.status === 'error' ? (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeFile(fileWithProgress.id)}
-                          className="h-9 w-9 shrink-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeFile(fileWithProgress.id)}
-                          disabled={isTransferring}
-                          className="h-9 w-9 shrink-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    {fileWithProgress.status !== 'pending' && fileWithProgress.status !== 'error' && (
-                      <div className="space-y-1">
-                        <Progress value={fileWithProgress.progress} className="h-2" />
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {fileWithProgress.status}... {fileWithProgress.progress}%
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+        {/* FILE section */}
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            File
+          </p>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileSelect}
+            className="hidden"
+            id="transfer-file-input"
+          />
+
+          {selectedFile ? (
+            <div className="flex items-center gap-3 rounded-2xl border-2 border-primary/40 bg-primary/5 px-4 py-4">
+              <FileIcon className="w-5 h-5 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-primary font-medium truncate">
+                  {selectedFile.name}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {formatFileSize(selectedFile.size)}
+                </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Select Receiver</CardTitle>
-            <CardDescription>Choose who to send the files to</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select value={selectedReceiver} onValueChange={setSelectedReceiver} disabled={isTransferring}>
-              <SelectTrigger className="h-14 text-base">
-                <SelectValue placeholder="Select a user" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableReceivers.map((principal) => {
-                  const profile = receiverProfilesMap?.[principal.toString()];
-                  return (
-                    <SelectItem key={principal.toString()} value={principal.toString()}>
-                      {profile?.displayName || principal.toString().slice(0, 12) + '...'}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-
-            <Button
-              onClick={handleTransfer}
-              disabled={!selectedReceiver || selectedFiles.length === 0 || isTransferring}
-              className="w-full h-14 text-base"
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                aria-label="Remove file"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label
+              htmlFor="transfer-file-input"
+              data-ocid="transfer.upload_button"
+              className="flex flex-col items-center justify-center w-full rounded-2xl border-2 border-dashed border-border bg-muted/30 py-10 cursor-pointer hover:bg-muted/50 hover:border-primary/50 transition-colors"
             >
-              {isTransferring ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Transferring...
-                </>
+              <Upload className="w-8 h-8 text-muted-foreground mb-3" />
+              <p className="text-sm font-medium text-foreground">
+                Tap to select a file
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Max 50MB</p>
+            </label>
+          )}
+
+          {transferError && (
+            <p
+              data-ocid="transfer.error_state"
+              className="text-sm text-destructive"
+            >
+              {transferError}
+            </p>
+          )}
+        </div>
+
+        {/* Upload progress bar */}
+        {isUploading && (
+          <div className="space-y-2" data-ocid="transfer.loading_state">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>
+                {isSendingToUser
+                  ? `Sending to ${selectedUser?.name}…`
+                  : "Uploading for QR sharing…"}
+              </span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <Progress value={uploadProgress} className="h-2 rounded-full" />
+          </div>
+        )}
+
+        {/* Share actions — visible only when file is selected */}
+        {selectedFile && !isUploading && (
+          <div className="flex flex-col gap-3">
+            {/* Share via QR Code */}
+            <Button
+              onClick={handleShareQR}
+              data-ocid="transfer.primary_button"
+              className="w-full h-14 text-base rounded-2xl gap-2"
+              disabled={!actor}
+            >
+              {isUploadingQR ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <>
-                  <Upload className="mr-2 h-5 w-5" />
-                  Transfer Files
-                </>
+                <QrCode className="w-5 h-5" />
               )}
+              Share via QR Code
             </Button>
-          </CardContent>
-        </Card>
+
+            {/* Share via Scanner */}
+            <Button
+              onClick={handleShareQR}
+              data-ocid="transfer.scanner.button"
+              variant="secondary"
+              className="w-full h-14 text-base rounded-2xl gap-2"
+              disabled={!actor}
+            >
+              {isUploadingQR ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <ScanLine className="w-5 h-5" />
+              )}
+              Share via Scanner
+            </Button>
+
+            {/* Share to User */}
+            <Button
+              onClick={handleShareToUser}
+              data-ocid="transfer.secondary_button"
+              variant="outline"
+              className="w-full h-14 text-base rounded-2xl gap-2"
+              disabled={!actor || !selectedUser || isSendingToUser}
+            >
+              {isSendingToUser ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+              {selectedUser
+                ? `Send to ${selectedUser.name}`
+                : "Select a user above"}
+            </Button>
+
+            {/* Web Share API fallback */}
+            {canWebShare && (
+              <Button
+                onClick={handleWebShare}
+                data-ocid="transfer.share.button"
+                variant="ghost"
+                className="w-full h-12 text-sm rounded-2xl gap-2 text-muted-foreground"
+              >
+                <Share2 className="w-4 h-4" />
+                Share via Device
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      <NetworkWarningDialog
-        isOpen={showNetworkWarning}
-        onClose={handleNetworkWarningCancel}
-        onProceed={handleNetworkWarningProceed}
-        fileSize={selectedFiles[0]?.file.size || 0}
-        connectionType={networkInfo.connectionType}
-        isMetered={networkInfo.isMetered}
+      {/* QR Code Dialog */}
+      <QRCodeDialog
+        open={qrDialogOpen}
+        onClose={() => {
+          setQrDialogOpen(false);
+          setSelectedFile(null);
+          setSelectedUser(null);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        }}
+        sessionId={qrSessionId}
+        fileName={selectedFile?.name}
       />
     </>
   );

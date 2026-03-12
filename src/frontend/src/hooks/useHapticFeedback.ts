@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
 interface HapticFeedback {
   triggerLight: () => void;
@@ -8,7 +8,8 @@ interface HapticFeedback {
 }
 
 export function useHapticFeedback(): HapticFeedback {
-  const isSupported = typeof navigator !== 'undefined' && 'vibrate' in navigator;
+  const isSupported =
+    typeof navigator !== "undefined" && "vibrate" in navigator;
 
   const triggerLight = useCallback(() => {
     if (isSupported) {

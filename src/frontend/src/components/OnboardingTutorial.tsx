@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useState } from "react";
 
 interface OnboardingTutorialProps {
   open: boolean;
@@ -10,23 +10,29 @@ interface OnboardingTutorialProps {
 
 const slides = [
   {
-    image: '/assets/generated/onboarding-qr.dim_400x300.png',
-    title: 'Share with QR Codes',
-    description: 'Scan QR codes to quickly connect and share files with nearby users.',
+    image: "/assets/generated/onboarding-qr.dim_400x300.png",
+    title: "Share with QR Codes",
+    description:
+      "Scan QR codes to quickly connect and share files with nearby users.",
   },
   {
-    image: '/assets/generated/onboarding-transfer.dim_400x300.png',
-    title: 'Fast File Transfers',
-    description: 'Send files securely to online users with real-time progress tracking.',
+    image: "/assets/generated/onboarding-transfer.dim_400x300.png",
+    title: "Fast File Transfers",
+    description:
+      "Send files securely to online users with real-time progress tracking.",
   },
   {
-    image: '/assets/generated/onboarding-ai.dim_400x300.png',
-    title: 'AI-Powered Features',
-    description: 'Compress images and recognize file types using built-in AI tools.',
+    image: "/assets/generated/onboarding-ai.dim_400x300.png",
+    title: "AI-Powered Features",
+    description:
+      "Compress images and recognize file types using built-in AI tools.",
   },
 ];
 
-export default function OnboardingTutorial({ open, onComplete }: OnboardingTutorialProps) {
+export default function OnboardingTutorial({
+  open,
+  onComplete,
+}: OnboardingTutorialProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -104,16 +110,20 @@ export default function OnboardingTutorial({ open, onComplete }: OnboardingTutor
               className="flex transition-transform duration-300 ease-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
-              {slides.map((slide, index) => (
-                <div key={index} className="w-full flex-shrink-0 p-8">
+              {slides.map((slide) => (
+                <div key={slide.title} className="w-full flex-shrink-0 p-8">
                   <img
                     src={slide.image}
                     alt={slide.title}
                     className="w-full h-auto mb-6 rounded-lg"
                     loading="lazy"
                   />
-                  <h2 className="text-2xl font-bold mb-3 text-center">{slide.title}</h2>
-                  <p className="text-muted-foreground text-center">{slide.description}</p>
+                  <h2 className="text-2xl font-bold mb-3 text-center">
+                    {slide.title}
+                  </h2>
+                  <p className="text-muted-foreground text-center">
+                    {slide.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -121,12 +131,13 @@ export default function OnboardingTutorial({ open, onComplete }: OnboardingTutor
 
           {/* Indicators */}
           <div className="flex justify-center gap-2 pb-6">
-            {slides.map((_, index) => (
+            {slides.map((slide, index) => (
               <button
-                key={index}
+                type="button"
+                key={slide.title}
                 onClick={() => setCurrentSlide(index)}
                 className={`h-2 rounded-full transition-all ${
-                  index === currentSlide ? 'w-8 bg-primary' : 'w-2 bg-muted'
+                  index === currentSlide ? "w-8 bg-primary" : "w-2 bg-muted"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -146,7 +157,7 @@ export default function OnboardingTutorial({ open, onComplete }: OnboardingTutor
             </Button>
             <Button onClick={handleNext} className="h-12 px-6">
               {currentSlide === slides.length - 1 ? (
-                'Get Started'
+                "Get Started"
               ) : (
                 <>
                   Next

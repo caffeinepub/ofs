@@ -1,11 +1,14 @@
-import { useRef, useState, useCallback } from 'react';
+import { useCallback, useRef, useState } from "react";
 
 interface UsePullToRefreshOptions {
   onRefresh: () => Promise<void>;
   threshold?: number;
 }
 
-export function usePullToRefresh({ onRefresh, threshold = 80 }: UsePullToRefreshOptions) {
+export function usePullToRefresh({
+  onRefresh,
+  threshold = 80,
+}: UsePullToRefreshOptions) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const startY = useRef(0);
   const currentY = useRef(0);

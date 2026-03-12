@@ -1,11 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SkeletonCardProps {
   height?: string;
 }
 
-export default function SkeletonCard({ height = '100px' }: SkeletonCardProps) {
+export default function SkeletonCard({ height = "100px" }: SkeletonCardProps) {
   return (
     <Card>
       <CardContent className="p-4" style={{ height }}>

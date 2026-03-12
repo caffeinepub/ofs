@@ -1,4 +1,4 @@
-import { useIsFetching, useIsMutating } from '@tanstack/react-query';
+import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 
 export function useRequestIndicator() {
   const isFetching = useIsFetching();

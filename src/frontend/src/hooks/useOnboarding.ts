@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-const STORAGE_KEY = 'onboardingCompleted';
+const STORAGE_KEY = "onboardingCompleted";
 
 interface Onboarding {
   showOnboarding: boolean;
@@ -12,11 +12,11 @@ export function useOnboarding(): Onboarding {
 
   useEffect(() => {
     const completed = localStorage.getItem(STORAGE_KEY);
-    setShowOnboarding(completed !== 'true');
+    setShowOnboarding(completed !== "true");
   }, []);
 
   const completeOnboarding = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    localStorage.setItem(STORAGE_KEY, "true");
     setShowOnboarding(false);
   };
 

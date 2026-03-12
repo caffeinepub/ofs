@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
 interface NetworkConnection extends EventTarget {
-  effectiveType: '4g' | '3g' | '2g' | 'slow-2g';
+  effectiveType: "4g" | "3g" | "2g" | "slow-2g";
   saveData: boolean;
   downlink: number;
   rtt: number;
@@ -25,7 +25,7 @@ declare global {
 
 export function useNetworkInfo(): NetworkInfo {
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({
-    connectionType: '4g',
+    connectionType: "4g",
     isSlow: false,
     isMetered: false,
     saveData: false,
@@ -33,15 +33,18 @@ export function useNetworkInfo(): NetworkInfo {
   });
 
   useEffect(() => {
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const connection =
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
 
     if (!connection) {
       return;
     }
 
     const updateNetworkInfo = () => {
-      const effectiveType = connection.effectiveType || '4g';
-      const isSlow = effectiveType === '2g' || effectiveType === 'slow-2g';
+      const effectiveType = connection.effectiveType || "4g";
+      const isSlow = effectiveType === "2g" || effectiveType === "slow-2g";
       const saveData = connection.saveData || false;
 
       setNetworkInfo({
@@ -55,10 +58,10 @@ export function useNetworkInfo(): NetworkInfo {
 
     updateNetworkInfo();
 
-    connection.addEventListener('change', updateNetworkInfo);
+    connection.addEventListener("change", updateNetworkInfo);
 
     return () => {
-      connection.removeEventListener('change', updateNetworkInfo);
+      connection.removeEventListener("change", updateNetworkInfo);
     };
   }, []);
 

@@ -1,11 +1,14 @@
-import { useRef, useCallback } from 'react';
+import { useCallback, useRef } from "react";
 
 interface UseSwipeBackOptions {
   onSwipeBack: () => void;
   threshold?: number;
 }
 
-export function useSwipeBack({ onSwipeBack, threshold = 100 }: UseSwipeBackOptions) {
+export function useSwipeBack({
+  onSwipeBack,
+  threshold = 100,
+}: UseSwipeBackOptions) {
   const startX = useRef(0);
   const startY = useRef(0);
 
@@ -26,7 +29,7 @@ export function useSwipeBack({ onSwipeBack, threshold = 100 }: UseSwipeBackOptio
         onSwipeBack();
       }
     },
-    [onSwipeBack, threshold]
+    [onSwipeBack, threshold],
   );
 
   return {

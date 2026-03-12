@@ -1,4 +1,4 @@
-import { useEffect, RefObject } from 'react';
+import { type RefObject, useEffect } from "react";
 
 interface KeyboardHandlerOptions {
   inputRefs?: Array<RefObject<HTMLInputElement | HTMLTextAreaElement | null>>;
@@ -7,15 +7,15 @@ interface KeyboardHandlerOptions {
 }
 
 export function useKeyboardHandler(options: KeyboardHandlerOptions = {}) {
-  const { inputRefs = [], onFocus, onBlur } = options;
+  const { inputRefs: _inputRefs = [], onFocus, onBlur } = options;
 
   useEffect(() => {
     const handleFocus = (e: FocusEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
         // Scroll input into view with some padding
         setTimeout(() => {
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 300);
         onFocus?.();
       }
@@ -27,7 +27,7 @@ export function useKeyboardHandler(options: KeyboardHandlerOptions = {}) {
 
     const handleTouchOutside = (e: TouchEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+      if (target.tagName !== "INPUT" && target.tagName !== "TEXTAREA") {
         // Blur active element if tapping outside
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur();
@@ -35,20 +35,20 @@ export function useKeyboardHandler(options: KeyboardHandlerOptions = {}) {
       }
     };
 
-    document.addEventListener('focusin', handleFocus);
-    document.addEventListener('focusout', handleBlur);
-    document.addEventListener('touchstart', handleTouchOutside);
+    document.addEventListener("focusin", handleFocus);
+    document.addEventListener("focusout", handleBlur);
+    document.addEventListener("touchstart", handleTouchOutside);
 
     return () => {
-      document.removeEventListener('focusin', handleFocus);
-      document.removeEventListener('focusout', handleBlur);
-      document.removeEventListener('touchstart', handleTouchOutside);
+      document.removeEventListener("focusin", handleFocus);
+      document.removeEventListener("focusout", handleBlur);
+      document.removeEventListener("touchstart", handleTouchOutside);
     };
   }, [onFocus, onBlur]);
 
   return {
     scrollIntoView: (ref: RefObject<HTMLElement>) => {
-      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     },
   };
 }

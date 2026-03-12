@@ -1,11 +1,14 @@
-import { useRef, useCallback } from 'react';
+import { useCallback, useRef } from "react";
 
 interface UseLongPressOptions<T> {
   onLongPress: (data: T) => void;
   delay?: number;
 }
 
-export function useLongPress<T>({ onLongPress, delay = 500 }: UseLongPressOptions<T>) {
+export function useLongPress<T>({
+  onLongPress,
+  delay = 500,
+}: UseLongPressOptions<T>) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dataRef = useRef<T | null>(null);
 
@@ -19,7 +22,7 @@ export function useLongPress<T>({ onLongPress, delay = 500 }: UseLongPressOption
         }
       }, delay);
     },
-    [onLongPress, delay]
+    [onLongPress, delay],
   );
 
   const cancel = useCallback(() => {
@@ -39,6 +42,6 @@ export function useLongPress<T>({ onLongPress, delay = 500 }: UseLongPressOption
       onMouseUp: cancel,
       onMouseLeave: cancel,
     }),
-    [start, cancel]
+    [start, cancel],
   );
 }

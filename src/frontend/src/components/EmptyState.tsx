@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
   imagePath: string;
@@ -24,7 +24,9 @@ export default function EmptyState({
         loading="lazy"
       />
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground max-w-sm mb-6">{description}</p>
+      <p className="text-sm text-muted-foreground max-w-sm mb-6">
+        {description}
+      </p>
       {actionLabel && onAction && (
         <Button onClick={onAction} className="h-12 px-6">
           {actionLabel}

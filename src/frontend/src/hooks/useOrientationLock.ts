@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 interface OrientationLock {
   isLocked: boolean;
@@ -8,7 +8,7 @@ interface OrientationLock {
   toggleLock: () => Promise<void>;
 }
 
-const STORAGE_KEY = 'orientationLockEnabled';
+const STORAGE_KEY = "orientationLockEnabled";
 
 export function useOrientationLock(): OrientationLock {
   const [isLocked, setIsLocked] = useState(false);
@@ -16,13 +16,17 @@ export function useOrientationLock(): OrientationLock {
 
   useEffect(() => {
     // Check if Screen Orientation API is supported
-    const supported = typeof screen !== 'undefined' && 'orientation' in screen && screen.orientation && 'lock' in screen.orientation;
+    const supported =
+      typeof screen !== "undefined" &&
+      "orientation" in screen &&
+      screen.orientation &&
+      "lock" in screen.orientation;
     setIsSupported(supported);
 
     // Load preference from localStorage
     if (supported) {
       const savedPreference = localStorage.getItem(STORAGE_KEY);
-      if (savedPreference === 'true') {
+      if (savedPreference === "true") {
         enableLock();
       }
     }
@@ -34,13 +38,13 @@ export function useOrientationLock(): OrientationLock {
     try {
       // Type assertion for screen.orientation.lock
       const orientation = screen.orientation as any;
-      if (orientation && typeof orientation.lock === 'function') {
-        await orientation.lock('portrait');
+      if (orientation && typeof orientation.lock === "function") {
+        await orientation.lock("portrait");
         setIsLocked(true);
-        localStorage.setItem(STORAGE_KEY, 'true');
+        localStorage.setItem(STORAGE_KEY, "true");
       }
     } catch (error) {
-      console.warn('Failed to lock orientation:', error);
+      console.warn("Failed to lock orientation:", error);
     }
   }, [isSupported]);
 
@@ -49,13 +53,13 @@ export function useOrientationLock(): OrientationLock {
 
     try {
       const orientation = screen.orientation as any;
-      if (orientation && typeof orientation.unlock === 'function') {
+      if (orientation && typeof orientation.unlock === "function") {
         orientation.unlock();
         setIsLocked(false);
-        localStorage.setItem(STORAGE_KEY, 'false');
+        localStorage.setItem(STORAGE_KEY, "false");
       }
     } catch (error) {
-      console.warn('Failed to unlock orientation:', error);
+      console.warn("Failed to unlock orientation:", error);
     }
   }, [isSupported]);
 

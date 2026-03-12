@@ -1,72 +1,48 @@
-import { useState, useEffect } from 'react';
-import { useSearch } from '@tanstack/react-router';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useSetOnlineStatus } from '../hooks/useQueries';
-import { useOnlineStatus } from '../utils/useOnlineStatus';
-import FileTransfer from '../components/FileTransfer';
-import TransferHistory from '../components/TransferHistory';
-import OnlineUsers from '../components/OnlineUsers';
-import AIFeatures from '../components/AIFeatures';
-import BottomNavBar from '../components/BottomNavBar';
+import { useState } from "react";
+import AIFeatures from "../components/AIFeatures";
+import BottomNavBar from "../components/BottomNavBar";
+import FileTransfer from "../components/FileTransfer";
+import OnlineUsers from "../components/OnlineUsers";
+import TransferHistory from "../components/TransferHistory";
+import { TransferProvider } from "../contexts/TransferContext";
 
-type TabValue = 'transfer' | 'history' | 'users' | 'ai';
+type TabValue = "transfer" | "history" | "users" | "ai";
 
 export default function Dashboard() {
-  const { identity } = useInternetIdentity();
-  const setOnlineStatus = useSetOnlineStatus();
-  const isOnline = useOnlineStatus();
-  
-  // Read tab from URL search params
-  const search = useSearch({ strict: false }) as { tab?: TabValue };
-  const initialTab = search.tab && ['transfer', 'history', 'users', 'ai'].includes(search.tab) 
-    ? search.tab 
-    : 'transfer';
-  
-  const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
-  const [prefilledFile, setPrefilledFile] = useState<{ file: File; source: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<TabValue>("transfer");
+  const [historySubTab, setHistorySubTab] = useState<"sent" | "received">(
+    "sent",
+  );
 
-  // Update active tab when URL search params change
-  useEffect(() => {
-    if (search.tab && ['transfer', 'history', 'users', 'ai'].includes(search.tab)) {
-      setActiveTab(search.tab);
-    }
-  }, [search.tab]);
-
-  // Set user online when component mounts and browser is online
-  useEffect(() => {
-    if (isOnline && identity) {
-      setOnlineStatus.mutate(true);
-    }
-
-    // Set user offline when component unmounts or page closes
-    return () => {
-      if (identity) {
-        setOnlineStatus.mutate(false);
-      }
-    };
-  }, [isOnline, identity]);
-
-  const handleShareCompressedImage = (file: File) => {
-    setPrefilledFile({ file, source: 'compression' });
-    setActiveTab('transfer');
+  const handleTabChange = (tab: TabValue) => {
+    setActiveTab(tab);
   };
 
-  const handleFileProcessed = () => {
-    setPrefilledFile(null);
+  const handleNavigateToReceived = () => {
+    setHistorySubTab("received");
+    setActiveTab("history");
   };
 
   return (
-    <div className="relative min-h-full">
-      <div className="px-4 py-6 pb-24">
-        {activeTab === 'transfer' && (
-          <FileTransfer prefilledFile={prefilledFile} onFileProcessed={handleFileProcessed} />
-        )}
-        {activeTab === 'history' && <TransferHistory />}
-        {activeTab === 'users' && <OnlineUsers />}
-        {activeTab === 'ai' && <AIFeatures onShareCompressedImage={handleShareCompressedImage} />}
-      </div>
+    <TransferProvider>
+      <div className="relative min-h-full">
+        <div className="px-4 py-6 pb-24">
+          {activeTab === "transfer" && (
+            <FileTransfer onNavigateToReceived={handleNavigateToReceived} />
+          )}
+          {activeTab === "history" && (
+            <TransferHistory initialSubTab={historySubTab} />
+          )}
+          {activeTab === "users" && <OnlineUsers />}
+          {activeTab === "ai" && (
+            <AIFeatures
+              onNavigateToTransfer={() => handleTabChange("transfer")}
+            />
+          )}
+        </div>
 
-      <BottomNavBar activeTab={activeTab} onTabChange={setActiveTab} />
-    </div>
+        <BottomNavBar activeTab={activeTab} onTabChange={handleTabChange} />
+      </div>
+    </TransferProvider>
   );
 }

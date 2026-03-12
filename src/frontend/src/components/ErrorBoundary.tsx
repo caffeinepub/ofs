@@ -1,7 +1,14 @@
-import React, { Component, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import type React from "react";
+import { Component, type ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -23,7 +30,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    console.error("Error caught by boundary:", error, errorInfo);
   }
 
   handleRetry = () => {
@@ -42,16 +49,21 @@ export default class ErrorBoundary extends Component<Props, State> {
               </div>
               <CardTitle className="text-2xl">Something went wrong</CardTitle>
               <CardDescription>
-                {this.state.error?.message || 'An unexpected error occurred'}
+                {this.state.error?.message || "An unexpected error occurred"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button onClick={this.handleRetry} className="w-full h-14 text-base">
+              <Button
+                onClick={this.handleRetry}
+                className="w-full h-14 text-base"
+              >
                 Retry
               </Button>
               <Button
                 variant="outline"
-                onClick={() => (window.location.href = '/')}
+                onClick={() => {
+                  window.location.href = "/";
+                }}
                 className="w-full h-14 text-base"
               >
                 Go to Home
