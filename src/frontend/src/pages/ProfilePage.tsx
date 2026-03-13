@@ -2,7 +2,6 @@ import { ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useKeyboardHandler } from "../hooks/useKeyboardHandler";
 import { useLocalProfile } from "../hooks/useLocalProfile";
-import { useOrientationLock } from "../hooks/useOrientationLock";
 import { useSwipeBack } from "../hooks/useSwipeBack";
 
 interface ProfilePageProps {
@@ -14,8 +13,6 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
   const [displayName, setDisplayName] = useState(profile?.displayName || "");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
-
-  const { isLocked, toggleLock } = useOrientationLock();
 
   useSwipeBack({ onSwipeBack: onBack });
   useKeyboardHandler({ inputRefs: [nameInputRef] });
@@ -105,30 +102,6 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
             </div>
           </div>
         )}
-
-        {/* Orientation Lock */}
-        <div className="flex items-center justify-between p-4 bg-card rounded-xl border border-border">
-          <div className="flex-1 min-w-0 mr-4">
-            <p className="text-base font-semibold text-foreground">
-              Portrait Lock
-            </p>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Keep screen in portrait orientation
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={toggleLock}
-            className={`relative w-14 h-8 rounded-full transition-colors shrink-0 ${isLocked ? "bg-primary" : "bg-muted"}`}
-            role="switch"
-            aria-checked={isLocked}
-            data-ocid="profile.toggle"
-          >
-            <span
-              className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-transform ${isLocked ? "translate-x-7" : "translate-x-1"}`}
-            />
-          </button>
-        </div>
 
         {/* Save button */}
         <button

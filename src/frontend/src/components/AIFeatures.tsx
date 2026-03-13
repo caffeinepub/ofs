@@ -225,7 +225,7 @@ export default function AIFeatures({ onNavigateToTransfer }: AIFeaturesProps) {
           <Button
             onClick={handleCompress}
             disabled={!selectedImage || isCompressing}
-            className="w-full h-14 text-base"
+            className="w-full h-14 text-base active:opacity-90 active:bg-primary"
           >
             {isCompressing ? (
               <>

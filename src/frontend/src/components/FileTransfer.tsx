@@ -4,7 +4,6 @@ import {
   ChevronDown,
   FileIcon,
   Loader2,
-  QrCode,
   ScanLine,
   Send,
   Share2,
@@ -193,7 +192,7 @@ export default function FileTransfer({
       reader.readAsArrayBuffer(file);
     });
 
-  // Share via QR Code — upload then show QR
+  // Share via Scanner (QR Code) — upload then show QR
   const handleShareQR = async () => {
     if (!selectedFile || !actor) {
       toast.error("Please select a file first");
@@ -449,27 +448,11 @@ export default function FileTransfer({
         {/* Share actions — visible only when file is selected */}
         {selectedFile && !isUploading && (
           <div className="flex flex-col gap-3">
-            {/* Share via QR Code */}
+            {/* Share via Scanner — primary CTA */}
             <Button
               onClick={handleShareQR}
               data-ocid="transfer.primary_button"
-              className="w-full h-14 text-base rounded-2xl gap-2"
-              disabled={!actor}
-            >
-              {isUploadingQR ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <QrCode className="w-5 h-5" />
-              )}
-              Share via QR Code
-            </Button>
-
-            {/* Share via Scanner */}
-            <Button
-              onClick={handleShareQR}
-              data-ocid="transfer.scanner.button"
-              variant="secondary"
-              className="w-full h-14 text-base rounded-2xl gap-2"
+              className="w-full h-14 text-base rounded-2xl gap-2 active:opacity-90 active:bg-primary"
               disabled={!actor}
             >
               {isUploadingQR ? (

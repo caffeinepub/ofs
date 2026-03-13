@@ -27,7 +27,7 @@ export default function Header() {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-11 w-11"
+            className="relative h-11 w-11"
             aria-label="Toggle theme"
             data-ocid="header.toggle"
           >
