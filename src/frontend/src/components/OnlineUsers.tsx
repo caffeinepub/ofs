@@ -1,5 +1,4 @@
-import { User, Wifi, WifiOff } from "lucide-react";
-import React from "react";
+import { User, WifiOff } from "lucide-react";
 import { useLocalProfile } from "../hooks/useLocalProfile";
 import {
   useGetMultipleUserProfiles,
@@ -7,75 +6,175 @@ import {
 } from "../hooks/useQueries";
 
 export default function OnlineUsers() {
-  const { data: onlinePrincipals = [], isLoading } = useGetOnlineUsers();
-  const { data: profiles = {} } = useGetMultipleUserProfiles(onlinePrincipals);
-  const { profile: localProfile } = useLocalProfile();
+  const { data: principals = [], isLoading } = useGetOnlineUsers();
+  const { data: profiles = {} } = useGetMultipleUserProfiles(principals);
+  const { profile } = useLocalProfile();
 
   return (
-    <div className="flex flex-col gap-4 pb-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Online Users</h2>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          {onlinePrincipals.length} online
+    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "22px",
+            fontWeight: 800,
+            color: "var(--foreground)",
+          }}
+        >
+          Online Users
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "13px",
+            color: "var(--muted-foreground)",
+          }}
+        >
+          <span
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "#22c55e",
+              display: "inline-block",
+            }}
+          />
+          {principals.length} online
         </div>
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col gap-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-16 rounded-2xl bg-muted/50 animate-pulse"
+              style={{
+                height: "64px",
+                borderRadius: "14px",
+                backgroundColor: "var(--muted)",
+                opacity: 0.6,
+              }}
             />
           ))}
         </div>
-      ) : onlinePrincipals.length === 0 ? (
+      ) : principals.length === 0 ? (
         <div
           data-ocid="users.empty_state"
-          className="flex flex-col items-center justify-center py-16 gap-3 text-center"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "56px 16px",
+            gap: "12px",
+            textAlign: "center",
+          }}
         >
-          <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
-            <WifiOff className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="font-semibold text-foreground">No users online</p>
-          <p className="text-sm text-muted-foreground">
-            Share the app link with others to see them here
+          <WifiOff
+            style={{
+              width: "48px",
+              height: "48px",
+              color: "var(--muted-foreground)",
+              opacity: 0.5,
+            }}
+          />
+          <p
+            style={{
+              fontSize: "16px",
+              fontWeight: 600,
+              color: "var(--foreground)",
+            }}
+          >
+            No users online
+          </p>
+          <p style={{ fontSize: "13px", color: "var(--muted-foreground)" }}>
+            Share the app link to see others here
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {onlinePrincipals.map((principal, idx) => {
-            const profileData = profiles[principal.toString()];
-            const name =
-              (profileData as { displayName?: string } | null)?.displayName ||
-              `User ${idx + 1}`;
-            const isYou = localProfile?.displayName === name;
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {principals.map((p, idx) => {
+            const prof = profiles[p.toString()] as {
+              displayName?: string;
+            } | null;
+            const name = prof?.displayName || `User ${idx + 1}`;
+            const isYou = profile?.displayName === name;
             return (
               <div
-                key={principal.toString()}
+                key={p.toString()}
                 data-ocid={`users.item.${idx + 1}`}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  borderRadius: "14px",
+                  border: "1px solid var(--border)",
+                  backgroundColor: "var(--card)",
+                  padding: "14px 16px",
+                }}
               >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <User className="w-5 h-5 text-primary" />
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(37,99,235,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <User
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      color: "var(--primary)",
+                    }}
+                  />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-base text-foreground truncate">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      fontSize: "15px",
+                      color: "var(--foreground)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {name}
                     {isYou && (
-                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                      <span
+                        style={{
+                          marginLeft: "8px",
+                          fontSize: "12px",
+                          fontWeight: 400,
+                          color: "var(--muted-foreground)",
+                        }}
+                      >
                         (You)
                       </span>
                     )}
                   </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <Wifi className="w-3 h-3 text-green-500" />
-                    <span className="text-xs text-green-500 font-medium">
-                      Online
-                    </span>
-                  </div>
                 </div>
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    backgroundColor: "#22c55e",
+                    flexShrink: 0,
+                  }}
+                />
               </div>
             );
           })}

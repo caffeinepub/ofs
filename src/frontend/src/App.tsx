@@ -15,12 +15,18 @@ import ProfilePage from "./pages/ProfilePage";
 import ReceivePage from "./pages/ReceivePage";
 import { registerServiceWorker } from "./pwa/registerServiceWorker";
 
-// ---- Layouts ----
-function AuthenticatedLayout() {
+function HomeLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100dvh",
+        flexDirection: "column",
+        backgroundColor: "var(--background)",
+      }}
+    >
       <Header />
-      <main className="flex-1 pb-20">
+      <main style={{ flex: 1, paddingBottom: "80px" }}>
         <Dashboard />
       </main>
     </div>
@@ -30,9 +36,16 @@ function AuthenticatedLayout() {
 function MenuLayout() {
   const navigate = useNavigate();
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100dvh",
+        flexDirection: "column",
+        backgroundColor: "var(--background)",
+      }}
+    >
       <Header />
-      <main className="flex-1">
+      <main style={{ flex: 1 }}>
         <MobileMenu
           onNavigateToProfile={() => navigate({ to: "/profile" })}
           onClose={() => navigate({ to: "/" })}
@@ -45,22 +58,28 @@ function MenuLayout() {
 function ProfileLayout() {
   const navigate = useNavigate();
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100dvh",
+        flexDirection: "column",
+        backgroundColor: "var(--background)",
+      }}
+    >
       <Header />
-      <main className="flex-1">
+      <main style={{ flex: 1 }}>
         <ProfilePage onBack={() => navigate({ to: "/" })} />
       </main>
     </div>
   );
 }
 
-// ---- Router ----
 const rootRoute = createRootRoute();
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: AuthenticatedLayout,
+  component: HomeLayout,
 });
 
 const menuRoute = createRoute({
@@ -95,7 +114,6 @@ declare module "@tanstack/react-router" {
   }
 }
 
-// ---- Root App ----
 export default function App() {
   useEffect(() => {
     registerServiceWorker();
@@ -104,7 +122,7 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <RouterProvider router={router} />
-      <Toaster />
+      <Toaster position="top-center" />
     </ThemeProvider>
   );
 }

@@ -1,6 +1,5 @@
 import { History, Send, Sparkles, Users } from "lucide-react";
 import type React from "react";
-import { useHapticFeedback } from "../hooks/useHapticFeedback";
 
 type TabValue = "transfer" | "history" | "users" | "ai";
 
@@ -20,50 +19,56 @@ export default function BottomNavBar({
   activeTab,
   onTabChange,
 }: BottomNavBarProps) {
-  const { triggerLight } = useHapticFeedback();
-
-  const handleTabClick = (tabId: TabValue) => {
-    triggerLight();
-    onTabChange(tabId);
-  };
-
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: "430px",
+        zIndex: 40,
+        backgroundColor: "var(--card)",
+        borderTop: "1px solid var(--border)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
-      <div className="flex items-stretch">
+      <div style={{ display: "flex" }}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-
           return (
             <button
               type="button"
               key={tab.id}
-              onClick={() => handleTabClick(tab.id)}
-              className={`
-                flex-1 flex flex-col items-center justify-center gap-1
-                min-h-[56px] py-2 px-1
-                transition-colors duration-150
-                ${
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }
-              `}
+              onClick={() => onTabChange(tab.id)}
+              data-ocid={`nav.${tab.id}.tab`}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "3px",
+                minHeight: "58px",
+                padding: "8px 4px",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                color: isActive ? "var(--primary)" : "var(--muted-foreground)",
+                transition: "color 0.15s",
+              }}
               aria-label={tab.label}
-              aria-current={isActive ? "page" : undefined}
             >
-              <Icon
-                size={26}
-                strokeWidth={isActive ? 2.5 : 1.8}
-                className="shrink-0"
-              />
+              <Icon size={24} strokeWidth={isActive ? 2.5 : 1.8} />
               <span
-                className={`text-[13px] leading-tight tracking-tight ${
-                  isActive ? "font-semibold" : "font-medium"
-                }`}
+                style={{
+                  fontSize: "11px",
+                  fontWeight: isActive ? 700 : 500,
+                  lineHeight: 1,
+                  letterSpacing: "0.2px",
+                }}
               >
                 {tab.label}
               </span>

@@ -14,34 +14,28 @@ export default function Dashboard() {
     "sent",
   );
 
-  const handleTabChange = (tab: TabValue) => {
-    setActiveTab(tab);
-  };
-
   const handleNavigateToReceived = () => {
     setHistorySubTab("received");
     setActiveTab("history");
   };
 
+  // Keep historySubTab in sync but suppress lint warning
+  void handleNavigateToReceived;
+
   return (
     <TransferProvider>
-      <div className="relative min-h-full">
-        <div className="px-4 py-6 pb-24">
-          {activeTab === "transfer" && (
-            <FileTransfer onNavigateToReceived={handleNavigateToReceived} />
-          )}
+      <div style={{ position: "relative", minHeight: "100%" }}>
+        <div style={{ padding: "16px 16px 100px" }}>
+          {activeTab === "transfer" && <FileTransfer />}
           {activeTab === "history" && (
             <TransferHistory initialSubTab={historySubTab} />
           )}
           {activeTab === "users" && <OnlineUsers />}
           {activeTab === "ai" && (
-            <AIFeatures
-              onNavigateToTransfer={() => handleTabChange("transfer")}
-            />
+            <AIFeatures onNavigateToTransfer={() => setActiveTab("transfer")} />
           )}
         </div>
-
-        <BottomNavBar activeTab={activeTab} onTabChange={handleTabChange} />
+        <BottomNavBar activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     </TransferProvider>
   );

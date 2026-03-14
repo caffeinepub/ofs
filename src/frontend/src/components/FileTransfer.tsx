@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   ChevronDown,
@@ -6,104 +5,152 @@ import {
   Loader2,
   ScanLine,
   Send,
-  Share2,
   Upload,
   User,
   X,
 } from "lucide-react";
-import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ExternalBlob } from "../backend";
 import { useTransfer } from "../contexts/TransferContext";
 import { useActor } from "../hooks/useActor";
-import { useHapticFeedback } from "../hooks/useHapticFeedback";
 import { useLocalHistory } from "../hooks/useLocalHistory";
 import { useLocalProfile } from "../hooks/useLocalProfile";
 import {
   useGetMultipleUserProfiles,
   useGetOnlineUsers,
 } from "../hooks/useQueries";
-import { validateFileSize } from "../utils/fileSizeValidation";
 import QRCodeDialog from "./QRCodeDialog";
 
-function formatFileSize(bytes: number): string {
+function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function genId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// ---- Online Users Dropdown ----
 interface SelectedUser {
   name: string;
   principal: string;
 }
 
-// ---- Online Users Dropdown ----
-interface OnlineUsersDropdownProps {
-  selectedUser: SelectedUser | null;
-  onSelect: (user: SelectedUser) => void;
-}
-
 function OnlineUsersDropdown({
   selectedUser,
   onSelect,
-}: OnlineUsersDropdownProps) {
+}: {
+  selectedUser: SelectedUser | null;
+  onSelect: (u: SelectedUser) => void;
+}) {
   const [open, setOpen] = useState(false);
-  const { data: onlinePrincipals = [], isLoading } = useGetOnlineUsers();
-  const { data: profiles = {} } = useGetMultipleUserProfiles(onlinePrincipals);
+  const { data: principals = [], isLoading } = useGetOnlineUsers();
+  const { data: profiles = {} } = useGetMultipleUserProfiles(principals);
 
-  const userEntries = onlinePrincipals.map((p, idx) => {
-    const profileData = profiles[p.toString()] as {
-      displayName?: string;
-    } | null;
+  const users = principals.map((p, i) => {
+    const prof = profiles[p.toString()] as { displayName?: string } | null;
     return {
       key: p.toString(),
-      name: profileData?.displayName || `User ${idx + 1}`,
-      idx,
+      name: prof?.displayName || `User ${i + 1}`,
+      idx: i,
     };
   });
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+      <p
+        style={{
+          fontSize: "11px",
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: "1px",
+          color: "var(--muted-foreground)",
+        }}
+      >
         Send To
       </p>
-      <div className="relative">
+      <div style={{ position: "relative" }}>
         <button
           type="button"
           data-ocid="transfer.users.toggle"
           onClick={() => setOpen((v) => !v)}
-          className="w-full flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-4 text-left shadow-sm transition-colors hover:bg-muted/40"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderRadius: "14px",
+            border: "1px solid var(--border)",
+            backgroundColor: "var(--card)",
+            padding: "14px 16px",
+            textAlign: "left",
+            cursor: "pointer",
+            color: "var(--foreground)",
+          }}
         >
-          <div className="flex items-center gap-3">
-            <User className="w-5 h-5 text-muted-foreground shrink-0" />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <User
+              style={{
+                width: "18px",
+                height: "18px",
+                color: "var(--muted-foreground)",
+                flexShrink: 0,
+              }}
+            />
             <span
-              className={
-                selectedUser
-                  ? "text-foreground font-medium"
-                  : "text-muted-foreground"
-              }
+              style={{
+                fontSize: "15px",
+                color: selectedUser
+                  ? "var(--foreground)"
+                  : "var(--muted-foreground)",
+              }}
             >
               {selectedUser?.name ||
-                (isLoading ? "Loading users…" : "Select a user")}
+                (isLoading ? "Loading\u2026" : "Select a user")}
             </span>
           </div>
           <ChevronDown
-            className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+            style={{
+              width: "16px",
+              height: "16px",
+              color: "var(--muted-foreground)",
+              transform: open ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s",
+            }}
           />
         </button>
 
         {open && (
           <div
             data-ocid="transfer.users.dropdown_menu"
-            className="absolute top-full left-0 right-0 z-50 mt-1 rounded-2xl border border-border bg-card shadow-lg overflow-hidden"
+            style={{
+              position: "absolute",
+              top: "calc(100% + 4px)",
+              left: 0,
+              right: 0,
+              zIndex: 50,
+              borderRadius: "14px",
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--card)",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+              overflow: "hidden",
+            }}
           >
-            {userEntries.length === 0 ? (
-              <div className="px-4 py-4 text-sm text-muted-foreground text-center">
+            {users.length === 0 ? (
+              <div
+                style={{
+                  padding: "16px",
+                  textAlign: "center",
+                  color: "var(--muted-foreground)",
+                  fontSize: "14px",
+                }}
+              >
                 No users online right now
               </div>
             ) : (
-              userEntries.map(({ key, name, idx }) => (
+              users.map(({ key, name, idx }) => (
                 <button
                   key={key}
                   type="button"
@@ -112,13 +159,52 @@ function OnlineUsersDropdown({
                     onSelect({ name, principal: key });
                     setOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium hover:bg-muted/50 transition-colors border-b border-border last:border-b-0"
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: "1px solid var(--border)",
+                    cursor: "pointer",
+                    color: "var(--foreground)",
+                    fontSize: "15px",
+                  }}
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4 text-primary" />
+                  <div
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(37,99,235,0.12)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <User
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        color: "var(--primary)",
+                      }}
+                    />
                   </div>
-                  <span className="text-foreground">{name}</span>
-                  <span className="ml-auto w-2 h-2 rounded-full bg-green-500" />
+                  <span style={{ fontWeight: 500 }}>{name}</span>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      backgroundColor: "#22c55e",
+                      flexShrink: 0,
+                    }}
+                  />
                 </button>
               ))
             )}
@@ -129,80 +215,49 @@ function OnlineUsersDropdown({
   );
 }
 
-// ---- Main FileTransfer Component ----
-interface FileTransferProps {
-  onNavigateToReceived?: () => void;
-}
-
-export default function FileTransfer({
-  onNavigateToReceived: _onNavigateToReceived,
-}: FileTransferProps) {
+export default function FileTransfer() {
   const { profile } = useLocalProfile();
   const { addSent } = useLocalHistory();
-  const { pendingFile, clearPendingFile } = useTransfer();
-  const { triggerLight, triggerSuccess } = useHapticFeedback();
   const { actor } = useActor();
-
-  const senderName = profile?.displayName || "Anonymous";
+  const { pendingFile, setPendingFile } = useTransfer();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedUser, setSelectedUser] = useState<SelectedUser | null>(null);
-  const [transferError, setTransferError] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [isSendingToUser, setIsSendingToUser] = useState(false);
-  const [isUploadingQR, setIsUploadingQR] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [qrFileId, setQrFileId] = useState<string | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
-  const [qrSessionId, setQrSessionId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const displayName = profile?.displayName || "User";
+
+  // Pick up pending file from AI tab
   useEffect(() => {
     if (pendingFile) {
-      const validation = validateFileSize(pendingFile.size);
-      if (validation.type !== "error") {
-        setSelectedFile(pendingFile);
-        setTransferError(null);
-      }
-      clearPendingFile();
+      setSelectedFile(pendingFile);
+      setPendingFile(null);
     }
-  }, [pendingFile, clearPendingFile]);
+  }, [pendingFile, setPendingFile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const validation = validateFileSize(file.size);
-    if (validation.type === "error") {
-      setTransferError(validation.message);
-      return;
-    }
-    triggerLight();
-    setTransferError(null);
-    setSelectedFile(file);
+    const f = e.target.files?.[0];
+    if (f) setSelectedFile(f);
+    e.target.value = "";
   };
 
-  const readFileAsBytes = (file: File): Promise<Uint8Array<ArrayBuffer>> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) =>
-        resolve(
-          new Uint8Array(
-            e.target?.result as ArrayBuffer,
-          ) as Uint8Array<ArrayBuffer>,
-        );
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-
-  // Share via Scanner (QR Code) — upload then show QR
-  const handleShareQR = async () => {
-    if (!selectedFile || !actor) {
-      toast.error("Please select a file first");
+  const handleShareViaScanner = async () => {
+    if (!selectedFile) return;
+    if (!actor) {
+      toast.error("Backend not available");
       return;
     }
-    setIsUploadingQR(true);
+
+    setUploading(true);
     setUploadProgress(0);
+
     try {
-      const bytes = await readFileAsBytes(selectedFile);
-      const id = `file-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const id = genId();
+      const bytes = new Uint8Array(await selectedFile.arrayBuffer());
       const blob = ExternalBlob.fromBytes(bytes).withUploadProgress((pct) =>
         setUploadProgress(pct),
       );
@@ -213,46 +268,40 @@ export default function FileTransfer({
         selectedFile.type || "application/octet-stream",
         blob,
       );
-      triggerSuccess();
+
+      setUploadProgress(100);
+      setQrFileId(id);
+      setQrDialogOpen(true);
+
       addSent({
-        id: `sent-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id,
         fileName: selectedFile.name,
         fileSize: selectedFile.size,
-        fileType: selectedFile.type || "application/octet-stream",
-        peerName: "Via QR Code",
+        fileType: selectedFile.type,
+        peerName: "QR Scan",
         timestamp: Date.now(),
       });
-      setQrSessionId(id);
-      setQrDialogOpen(true);
-    } catch (e) {
-      console.error("QR upload failed:", e);
-      toast.error("Upload failed. Please try again.");
+
+      toast.success("File ready to share!", {
+        description: "Show the QR code to the receiver.",
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      toast.error("Upload failed", { description: msg });
     } finally {
-      setIsUploadingQR(false);
-      setUploadProgress(0);
+      setUploading(false);
     }
   };
 
-  // Share to selected user
-  const handleShareToUser = async () => {
-    if (!selectedFile) {
-      toast.error("Please select a file first");
-      return;
-    }
-    if (!selectedUser) {
-      toast.error("Please select a user to send to");
-      return;
-    }
-    if (!actor) {
-      toast.error("Not connected. Please wait.");
-      return;
-    }
-    setIsSendingToUser(true);
+  const handleSendToUser = async () => {
+    if (!selectedFile || !selectedUser || !actor) return;
+
+    setUploading(true);
     setUploadProgress(0);
-    const startTime = Date.now();
+
     try {
-      const bytes = await readFileAsBytes(selectedFile);
-      const id = `file-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const id = genId();
+      const bytes = new Uint8Array(await selectedFile.arrayBuffer());
       const blob = ExternalBlob.fromBytes(bytes).withUploadProgress((pct) =>
         setUploadProgress(pct),
       );
@@ -263,252 +312,291 @@ export default function FileTransfer({
         selectedFile.type || "application/octet-stream",
         blob,
       );
-      const duration = BigInt(Date.now() - startTime);
-      try {
-        const callerProfile = await actor.getCallerUserProfile();
-        const onlinePrincipals = await actor.getOnlineUsers();
-        const receiverPrincipal = onlinePrincipals.find(
-          (p) => p.toString() === selectedUser.principal,
-        );
-        if (receiverPrincipal && callerProfile !== null) {
-          const fileMetadata = await actor.getFileMetadata(id);
-          await actor.recordTransfer(
-            `transfer-${Date.now()}`,
-            fileMetadata.uploader,
-            receiverPrincipal,
-            fileMetadata,
-            duration,
-            true,
-          );
-        }
-      } catch (e) {
-        console.warn("recordTransfer failed (non-fatal):", e);
-      }
-      triggerSuccess();
+      setUploadProgress(100);
+
       addSent({
-        id: `sent-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id,
         fileName: selectedFile.name,
         fileSize: selectedFile.size,
-        fileType: selectedFile.type || "application/octet-stream",
+        fileType: selectedFile.type,
         peerName: selectedUser.name,
         timestamp: Date.now(),
       });
-      toast.success(`File sent to ${selectedUser.name}!`);
+
+      toast.success(`Sent to ${selectedUser.name}!`);
       setSelectedFile(null);
       setSelectedUser(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch (e) {
-      console.error("Send to user failed:", e);
-      toast.error("Failed to send file. Please try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Send failed";
+      toast.error("Send failed", { description: msg });
     } finally {
-      setIsSendingToUser(false);
-      setUploadProgress(0);
+      setUploading(false);
     }
   };
-
-  // Web Share API fallback
-  const handleWebShare = async () => {
-    if (!selectedFile) return;
-    try {
-      await navigator.share({
-        files: [selectedFile],
-        title: selectedFile.name,
-      });
-      triggerSuccess();
-      addSent({
-        id: `sent-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-        fileType: selectedFile.type || "application/octet-stream",
-        peerName: "Via Device Share",
-        timestamp: Date.now(),
-      });
-      toast.success("File shared!");
-      setSelectedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch (e) {
-      if (e instanceof Error && e.name !== "AbortError") {
-        toast.error("Share failed");
-      }
-    }
-  };
-
-  const canWebShare =
-    typeof navigator !== "undefined" &&
-    "share" in navigator &&
-    typeof navigator.canShare === "function" &&
-    !!selectedFile &&
-    navigator.canShare({ files: [selectedFile] });
-
-  const isUploading = isSendingToUser || isUploadingQR;
 
   return (
-    <>
-      <div className="space-y-5 pb-6">
-        {/* SENDING AS card */}
-        <div
-          className="flex items-center gap-3 rounded-2xl bg-card border border-border px-4 py-3 shadow-sm"
-          data-ocid="transfer.section"
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* Sending As Card */}
+      <div
+        style={{
+          borderRadius: "14px",
+          backgroundColor: "var(--primary)",
+          padding: "14px 18px",
+          color: "#fff",
+        }}
+      >
+        <p
+          style={{
+            fontSize: "11px",
+            fontWeight: 700,
+            letterSpacing: "1.5px",
+            textTransform: "uppercase",
+            opacity: 0.75,
+            marginBottom: "2px",
+          }}
         >
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <User className="w-5 h-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Sending as
-            </p>
-            <p className="font-bold text-base text-foreground truncate">
-              {senderName}
-            </p>
-          </div>
-        </div>
-
-        {/* Online Users Dropdown */}
-        <OnlineUsersDropdown
-          selectedUser={selectedUser}
-          onSelect={setSelectedUser}
-        />
-
-        {/* FILE section */}
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            File
-          </p>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileSelect}
-            className="hidden"
-            id="transfer-file-input"
-          />
-
-          {selectedFile ? (
-            <div className="flex items-center gap-3 rounded-2xl border-2 border-primary/40 bg-primary/5 px-4 py-4">
-              <FileIcon className="w-5 h-5 text-primary shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-primary font-medium truncate">
-                  {selectedFile.name}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {formatFileSize(selectedFile.size)}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedFile(null);
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                }}
-                className="text-muted-foreground hover:text-foreground transition-colors p-1"
-                aria-label="Remove file"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <label
-              htmlFor="transfer-file-input"
-              data-ocid="transfer.upload_button"
-              className="flex flex-col items-center justify-center w-full rounded-2xl border-2 border-dashed border-border bg-muted/30 py-10 cursor-pointer hover:bg-muted/50 hover:border-primary/50 transition-colors"
-            >
-              <Upload className="w-8 h-8 text-muted-foreground mb-3" />
-              <p className="text-sm font-medium text-foreground">
-                Tap to select a file
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Max 50MB</p>
-            </label>
-          )}
-
-          {transferError && (
-            <p
-              data-ocid="transfer.error_state"
-              className="text-sm text-destructive"
-            >
-              {transferError}
-            </p>
-          )}
-        </div>
-
-        {/* Upload progress bar */}
-        {isUploading && (
-          <div className="space-y-2" data-ocid="transfer.loading_state">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>
-                {isSendingToUser
-                  ? `Sending to ${selectedUser?.name}…`
-                  : "Uploading for QR sharing…"}
-              </span>
-              <span>{uploadProgress}%</span>
-            </div>
-            <Progress value={uploadProgress} className="h-2 rounded-full" />
-          </div>
-        )}
-
-        {/* Share actions — visible only when file is selected */}
-        {selectedFile && !isUploading && (
-          <div className="flex flex-col gap-3">
-            {/* Share via Scanner — primary CTA */}
-            <Button
-              onClick={handleShareQR}
-              data-ocid="transfer.primary_button"
-              className="w-full h-14 text-base rounded-2xl gap-2 active:opacity-90 active:bg-primary"
-              disabled={!actor}
-            >
-              {isUploadingQR ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <ScanLine className="w-5 h-5" />
-              )}
-              Share via Scanner
-            </Button>
-
-            {/* Share to User */}
-            <Button
-              onClick={handleShareToUser}
-              data-ocid="transfer.secondary_button"
-              variant="outline"
-              className="w-full h-14 text-base rounded-2xl gap-2"
-              disabled={!actor || !selectedUser || isSendingToUser}
-            >
-              {isSendingToUser ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
-              {selectedUser
-                ? `Send to ${selectedUser.name}`
-                : "Select a user above"}
-            </Button>
-
-            {/* Web Share API fallback */}
-            {canWebShare && (
-              <Button
-                onClick={handleWebShare}
-                data-ocid="transfer.share.button"
-                variant="ghost"
-                className="w-full h-12 text-sm rounded-2xl gap-2 text-muted-foreground"
-              >
-                <Share2 className="w-4 h-4" />
-                Share via Device
-              </Button>
-            )}
-          </div>
-        )}
+          Sending as
+        </p>
+        <p
+          style={{ fontSize: "20px", fontWeight: 800, letterSpacing: "-0.3px" }}
+        >
+          {displayName}
+        </p>
       </div>
 
-      {/* QR Code Dialog */}
-      <QRCodeDialog
-        open={qrDialogOpen}
-        onClose={() => {
-          setQrDialogOpen(false);
-          setSelectedFile(null);
-          setSelectedUser(null);
-          if (fileInputRef.current) fileInputRef.current.value = "";
-        }}
-        sessionId={qrSessionId}
-        fileName={selectedFile?.name}
+      {/* Online Users Dropdown */}
+      <OnlineUsersDropdown
+        selectedUser={selectedUser}
+        onSelect={setSelectedUser}
       />
-    </>
+
+      {/* File Picker */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <p
+          style={{
+            fontSize: "11px",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+            color: "var(--muted-foreground)",
+          }}
+        >
+          File
+        </p>
+
+        {selectedFile ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              borderRadius: "14px",
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--card)",
+              padding: "14px 16px",
+            }}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "10px",
+                backgroundColor: "rgba(37,99,235,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <FileIcon
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  color: "var(--primary)",
+                }}
+              />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  color: "var(--foreground)",
+                }}
+              >
+                {selectedFile.name}
+              </p>
+              <p style={{ fontSize: "12px", color: "var(--muted-foreground)" }}>
+                {formatBytes(selectedFile.size)}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedFile(null)}
+              data-ocid="transfer.file.close_button"
+              style={{
+                padding: "6px",
+                borderRadius: "50%",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              <X style={{ width: "18px", height: "18px" }} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            data-ocid="transfer.upload_button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              borderRadius: "14px",
+              border: "2px dashed var(--border)",
+              backgroundColor: "var(--muted)",
+              padding: "32px 16px",
+              cursor: "pointer",
+              width: "100%",
+            }}
+          >
+            <Upload
+              style={{
+                width: "28px",
+                height: "28px",
+                color: "var(--muted-foreground)",
+              }}
+            />
+            <p
+              style={{
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "var(--foreground)",
+              }}
+            >
+              Tap to select a file
+            </p>
+            <p style={{ fontSize: "12px", color: "var(--muted-foreground)" }}>
+              Any file type supported
+            </p>
+          </button>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          style={{ display: "none" }}
+          onChange={handleFileSelect}
+        />
+      </div>
+
+      {/* Upload Progress */}
+      {uploading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: "12px",
+              color: "var(--muted-foreground)",
+            }}
+          >
+            <span>Uploading\u2026</span>
+            <span>{uploadProgress}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
+        </div>
+      )}
+
+      {/* Share via Scanner \u2014 ONLY when file is selected */}
+      {selectedFile && (
+        <button
+          type="button"
+          data-ocid="transfer.share.primary_button"
+          onClick={handleShareViaScanner}
+          disabled={uploading}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            width: "100%",
+            padding: "16px",
+            borderRadius: "14px",
+            border: "none",
+            backgroundColor: "var(--primary)",
+            color: "var(--primary-foreground)",
+            fontSize: "16px",
+            fontWeight: 700,
+            cursor: uploading ? "not-allowed" : "pointer",
+            opacity: uploading ? 0.7 : 1,
+            letterSpacing: "0.2px",
+          }}
+        >
+          {uploading ? (
+            <Loader2
+              style={{
+                width: "20px",
+                height: "20px",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+          ) : (
+            <ScanLine style={{ width: "20px", height: "20px" }} />
+          )}
+          {uploading ? "Uploading\u2026" : "Share via Scanner"}
+        </button>
+      )}
+
+      {/* Send to user button */}
+      {selectedFile && selectedUser && (
+        <button
+          type="button"
+          data-ocid="transfer.send.primary_button"
+          onClick={handleSendToUser}
+          disabled={uploading}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            width: "100%",
+            padding: "14px",
+            borderRadius: "14px",
+            border: "2px solid var(--primary)",
+            backgroundColor: "transparent",
+            color: "var(--primary)",
+            fontSize: "15px",
+            fontWeight: 600,
+            cursor: uploading ? "not-allowed" : "pointer",
+            opacity: uploading ? 0.7 : 1,
+          }}
+        >
+          <Send style={{ width: "18px", height: "18px" }} />
+          Send to {selectedUser.name}
+        </button>
+      )}
+
+      {/* QR Code Dialog */}
+      {qrFileId && (
+        <QRCodeDialog
+          open={qrDialogOpen}
+          onClose={() => {
+            setQrDialogOpen(false);
+            setSelectedFile(null);
+          }}
+          fileId={qrFileId}
+          fileName={selectedFile?.name || ""}
+        />
+      )}
+    </div>
   );
 }

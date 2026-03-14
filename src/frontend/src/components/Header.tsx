@@ -2,48 +2,96 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "@tanstack/react-router";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { BRANDING } from "../constants/branding";
 
 export default function Header() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <img
-            src="/assets/generated/ofs-logo-transparent.dim_200x200.png"
-            alt="OFS Logo"
-            className="h-10 w-10"
-          />
-          <h1 className="text-lg font-bold tracking-tight">
-            {BRANDING.appNameShort}
-          </h1>
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        width: "100%",
+        borderBottom: "1px solid var(--border)",
+        backgroundColor: "var(--card)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          height: "56px",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 16px",
+        }}
+      >
+        {/* Logo + Name */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
+              backgroundColor: "var(--primary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <span
+              style={{
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: "14px",
+                letterSpacing: "0.5px",
+              }}
+            >
+              OFS
+            </span>
+          </div>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: "16px",
+              letterSpacing: "-0.3px",
+              color: "var(--foreground)",
+            }}
+          >
+            File Sharing
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Actions */}
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="relative h-11 w-11"
+            onClick={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
+            className="h-10 w-10"
             aria-label="Toggle theme"
             data-ocid="header.toggle"
           >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            {resolvedTheme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
           </Button>
 
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate({ to: "/menu" })}
-            className="h-11 w-11 bg-primary/10 hover:bg-primary/20"
+            className="h-10 w-10"
+            style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}
             aria-label="Open menu"
             data-ocid="header.open_modal_button"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" style={{ color: "var(--primary)" }} />
           </Button>
         </div>
       </div>

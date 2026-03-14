@@ -1,202 +1,176 @@
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { AlertCircle, Clock, QrCode } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
-import { encodeQRPayload } from "../utils/qrPayload";
+import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { createQRPayload } from "../utils/qrPayload";
 
 interface QRCodeDialogProps {
   open: boolean;
   onClose: () => void;
-  sessionId: string;
-  fileName?: string;
-}
-
-const QR_EXPIRY_SECONDS = 300;
-
-function useQRCanvas(text: string, size: number) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [dataUrl, setDataUrl] = useState<string>("");
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    if (!text) {
-      setDataUrl("");
-      setError(false);
-      return;
-    }
-    setError(false);
-    setDataUrl("");
-
-    const encoded = encodeURIComponent(text);
-    const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&format=png&margin=10`;
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, size, size);
-          setDataUrl(canvas.toDataURL("image/png"));
-        }
-      }
-    };
-    img.onerror = () => {
-      setError(true);
-    };
-    img.src = url;
-  }, [text, size]);
-
-  return { canvasRef, dataUrl, error };
+  fileId: string;
+  fileName: string;
 }
 
 export default function QRCodeDialog({
   open,
   onClose,
-  sessionId,
+  fileId,
   fileName,
 }: QRCodeDialogProps) {
-  const [secondsLeft, setSecondsLeft] = useState(QR_EXPIRY_SECONDS);
-  const [expired, setExpired] = useState(false);
-  const payload = open ? encodeQRPayload(sessionId) : "";
-  const { canvasRef, dataUrl, error } = useQRCanvas(payload, 280);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Reset timer when dialog opens
   useEffect(() => {
-    if (open) {
-      setSecondsLeft(QR_EXPIRY_SECONDS);
-      setExpired(false);
-    }
-  }, [open]);
+    if (!open || !fileId || !canvasRef.current) return;
 
-  // Countdown timer
-  useEffect(() => {
-    if (!open || expired) return;
+    const payload = createQRPayload(fileId);
 
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          setExpired(true);
-          clearInterval(interval);
-          return 0;
+    const loadAndRender = async () => {
+      if (!(window as any).QRCode) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src =
+            "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js";
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error("Failed to load QRCode"));
+          document.head.appendChild(s);
+        });
+      }
+      try {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          await (window as any).QRCode.toCanvas(canvas, payload, {
+            width: 240,
+            margin: 2,
+            color: { dark: "#000000", light: "#ffffff" },
+          });
         }
-        return prev - 1;
-      });
-    }, 1000);
+      } catch (e) {
+        console.error("QR generation failed", e);
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, [open, expired]);
+    loadAndRender();
+  }, [open, fileId]);
 
-  const minutes = Math.floor(secondsLeft / 60);
-  const seconds = secondsLeft % 60;
-  const timeDisplay = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  const progressPercent = (secondsLeft / QR_EXPIRY_SECONDS) * 100;
+  if (!open) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="mx-4 rounded-2xl max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <QrCode className="w-5 h-5 text-primary" />
-            Share via QR Code
-          </DialogTitle>
-          {fileName && (
-            <DialogDescription className="text-sm truncate">
-              {fileName}
-            </DialogDescription>
-          )}
-        </DialogHeader>
+    <dialog
+      open
+      aria-label="QR Code"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.75)",
+        padding: "24px",
+        margin: 0,
+        maxWidth: "100%",
+        maxHeight: "100%",
+        width: "100%",
+        height: "100%",
+        border: "none",
+      }}
+    >
+      {/* Backdrop close */}
+      <button
+        type="button"
+        aria-label="Close dialog"
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        }}
+      />
+      <div
+        style={{
+          backgroundColor: "var(--card)",
+          borderRadius: "20px",
+          padding: "28px 24px",
+          width: "100%",
+          maxWidth: "320px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "16px",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          data-ocid="qr.close_button"
+          style={{
+            position: "absolute",
+            top: "14px",
+            right: "14px",
+            width: "32px",
+            height: "32px",
+            borderRadius: "50%",
+            border: "none",
+            backgroundColor: "var(--muted)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "var(--foreground)",
+          }}
+        >
+          <X style={{ width: "16px", height: "16px" }} />
+        </button>
 
-        <div className="flex flex-col items-center gap-4 py-2">
-          {/* Hidden canvas for rendering */}
-          <canvas ref={canvasRef} className="hidden" />
-
-          {expired ? (
-            <div className="w-[280px] h-[280px] rounded-xl bg-muted flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border">
-              <AlertCircle className="w-12 h-12 text-destructive" />
-              <p className="text-destructive font-semibold text-base">
-                QR Code Expired
-              </p>
-              <p className="text-muted-foreground text-sm text-center px-4">
-                This QR code has expired. Close and try again.
-              </p>
-            </div>
-          ) : error ? (
-            <div className="w-[280px] h-[280px] rounded-xl bg-muted flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border">
-              <AlertCircle className="w-10 h-10 text-muted-foreground" />
-              <p className="text-muted-foreground text-sm text-center px-4">
-                Could not generate QR code. Check your internet connection.
-              </p>
-              <p className="text-xs text-muted-foreground font-mono break-all px-4 text-center">
-                Session: {sessionId.slice(0, 16)}...
-              </p>
-            </div>
-          ) : dataUrl ? (
-            <img
-              src={dataUrl}
-              alt="QR Code"
-              className="w-[280px] h-[280px] rounded-xl border border-border"
-            />
-          ) : (
-            <div className="w-[280px] h-[280px] rounded-xl bg-muted flex items-center justify-center border border-border">
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-muted-foreground text-sm">
-                  Generating QR code...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Timer */}
-          {!expired && (
-            <div className="w-full space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>Expires in</span>
-                </div>
-                <span
-                  className={`font-mono font-semibold ${
-                    secondsLeft < 60 ? "text-destructive" : "text-foreground"
-                  }`}
-                >
-                  {timeDisplay}
-                </span>
-              </div>
-              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-1000 ${
-                    secondsLeft < 60 ? "bg-destructive" : "bg-primary"
-                  }`}
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          <p className="text-xs text-muted-foreground text-center">
-            Ask the receiver to scan this QR code to receive the file
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              fontWeight: 700,
+              fontSize: "18px",
+              color: "var(--foreground)",
+            }}
+          >
+            Scan to Receive
+          </p>
+          <p
+            style={{
+              fontSize: "13px",
+              color: "var(--muted-foreground)",
+              marginTop: "4px",
+              maxWidth: "220px",
+            }}
+          >
+            {fileName}
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={onClose}
-          className="w-full h-12 text-base rounded-xl"
+        <div
+          style={{
+            padding: "12px",
+            backgroundColor: "#fff",
+            borderRadius: "12px",
+          }}
         >
-          Close
-        </Button>
-      </DialogContent>
-    </Dialog>
+          <canvas
+            ref={canvasRef}
+            style={{ display: "block", borderRadius: "6px" }}
+          />
+        </div>
+
+        <p
+          style={{
+            fontSize: "12px",
+            color: "var(--muted-foreground)",
+            textAlign: "center",
+          }}
+        >
+          Valid for 5 minutes \u00b7 Ask receiver to scan
+        </p>
+      </div>
+    </dialog>
   );
 }

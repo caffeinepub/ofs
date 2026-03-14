@@ -1,8 +1,6 @@
 import { ArrowLeft, CheckCircle2, Save } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
-import { useKeyboardHandler } from "../hooks/useKeyboardHandler";
+import { useState } from "react";
 import { useLocalProfile } from "../hooks/useLocalProfile";
-import { useSwipeBack } from "../hooks/useSwipeBack";
 
 interface ProfilePageProps {
   onBack: () => void;
@@ -11,107 +9,178 @@ interface ProfilePageProps {
 export default function ProfilePage({ onBack }: ProfilePageProps) {
   const { profile, setProfile } = useLocalProfile();
   const [displayName, setDisplayName] = useState(profile?.displayName || "");
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
-  useSwipeBack({ onSwipeBack: onBack });
-  useKeyboardHandler({ inputRefs: [nameInputRef] });
-
-  useEffect(() => {
-    if (profile) {
-      setDisplayName(profile.displayName || "");
-    }
-  }, [profile]);
+  const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
-    if (!displayName.trim()) return;
-    setProfile(displayName.trim());
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    const name = displayName.trim();
+    if (!name) return;
+    setProfile(name);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 80,
+        backgroundColor: "var(--background)",
+        display: "flex",
+        flexDirection: "column",
+        maxWidth: "430px",
+        margin: "0 auto",
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-border shrink-0">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "16px",
+          borderBottom: "1px solid var(--border)",
+          backgroundColor: "var(--card)",
+        }}
+      >
         <button
           type="button"
           onClick={onBack}
-          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-          aria-label="Go back"
           data-ocid="profile.cancel_button"
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            border: "none",
+            backgroundColor: "var(--muted)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "var(--foreground)",
+            flexShrink: 0,
+          }}
+          aria-label="Go back"
         >
-          <ArrowLeft size={22} />
+          <ArrowLeft style={{ width: "20px", height: "20px" }} />
         </button>
-        <h1 className="text-xl font-bold text-foreground flex-1">
+        <h1
+          style={{
+            fontSize: "20px",
+            fontWeight: 700,
+            color: "var(--foreground)",
+            flex: 1,
+          }}
+        >
           Profile Settings
         </h1>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!displayName.trim()}
-          data-ocid="profile.save_button"
-          className="flex items-center gap-2 px-4 min-h-[40px] rounded-xl bg-primary text-primary-foreground text-base font-semibold disabled:opacity-50 transition-opacity active:scale-[0.98]"
-        >
-          <Save size={18} />
-          <span>Save</span>
-        </button>
       </div>
 
       {/* Form */}
-      <div className="flex flex-col gap-5 p-4 overflow-y-auto">
-        {/* Display Name */}
-        <div className="flex flex-col gap-2">
+      <div
+        style={{
+          padding: "24px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+          flex: 1,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <label
-            className="text-base font-semibold text-foreground"
             htmlFor="displayName"
+            style={{
+              fontSize: "14px",
+              fontWeight: 700,
+              color: "var(--foreground)",
+              textTransform: "uppercase",
+              letterSpacing: "0.8px",
+            }}
           >
             Display Name
           </label>
           <input
             id="displayName"
-            ref={nameInputRef}
             type="text"
             value={displayName}
             onChange={(e) => {
               setDisplayName(e.target.value);
-              if (saveSuccess) setSaveSuccess(false);
+              setSaved(false);
             }}
             placeholder="Enter your display name"
             data-ocid="profile.input"
-            className="w-full min-h-[52px] px-4 rounded-xl bg-muted border border-border text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            style={{
+              width: "100%",
+              minHeight: "52px",
+              padding: "0 16px",
+              borderRadius: "12px",
+              border: "1.5px solid var(--border)",
+              backgroundColor: "var(--card)",
+              fontSize: "16px",
+              color: "var(--foreground)",
+              outline: "none",
+            }}
             autoComplete="name"
-            inputMode="text"
           />
         </div>
 
-        {/* Success message */}
-        {saveSuccess && (
+        {saved && (
           <div
             data-ocid="profile.success_state"
-            className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              backgroundColor: "rgba(22,163,74,0.1)",
+              border: "1px solid rgba(22,163,74,0.25)",
+            }}
           >
-            <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+            <CheckCircle2
+              style={{
+                width: "18px",
+                height: "18px",
+                color: "#16a34a",
+                flexShrink: 0,
+              }}
+            />
             <div>
-              <p className="text-green-600 dark:text-green-400 text-sm font-semibold">
-                Name saved!
+              <p
+                style={{ fontSize: "14px", fontWeight: 700, color: "#16a34a" }}
+              >
+                Saved!
               </p>
-              <p className="text-green-600/70 dark:text-green-400/70 text-xs">
-                Your display name has been updated to "{displayName.trim()}".
+              <p style={{ fontSize: "12px", color: "#16a34a", opacity: 0.8 }}>
+                Name updated to "{displayName.trim()}"
               </p>
             </div>
           </div>
         )}
 
-        {/* Save button */}
         <button
           type="button"
           onClick={handleSave}
           disabled={!displayName.trim()}
-          data-ocid="profile.submit_button"
-          className="w-full min-h-[52px] rounded-xl bg-primary text-primary-foreground text-base font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-opacity active:scale-[0.98]"
+          data-ocid="profile.save_button"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            width: "100%",
+            padding: "16px",
+            borderRadius: "14px",
+            border: "none",
+            backgroundColor: "var(--primary)",
+            color: "var(--primary-foreground)",
+            fontSize: "16px",
+            fontWeight: 700,
+            cursor: displayName.trim() ? "pointer" : "not-allowed",
+            opacity: displayName.trim() ? 1 : 0.5,
+          }}
         >
-          <Save size={20} />
+          <Save style={{ width: "18px", height: "18px" }} />
           Save Changes
         </button>
       </div>

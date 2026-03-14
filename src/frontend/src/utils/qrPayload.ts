@@ -1,36 +1,16 @@
-/**
- * Encodes a session ID as a deep-link URL for QR code generation
- */
-export function encodeQRPayload(sessionId: string): string {
-  const baseUrl = window.location.origin;
-  return `${baseUrl}/?session=${encodeURIComponent(sessionId)}`;
+const PREFIX = "ofs://";
+
+export function createQRPayload(fileId: string): string {
+  return `${PREFIX}${fileId}`;
 }
 
-/**
- * Parses a QR code payload (either raw session ID or deep-link URL)
- * Returns the session ID or null if invalid
- */
-export function parseQRPayload(payload: string): string | null {
-  if (!payload) return null;
-
-  // Trim whitespace for robust paste-based workflow
-  const trimmed = payload.trim();
-
-  // Try to parse as URL first
-  try {
-    const url = new URL(trimmed);
-    const sessionId = url.searchParams.get("session");
-    if (sessionId) {
-      return sessionId;
-    }
-  } catch {
-    // Not a valid URL, treat as raw session ID
+export function parseQRPayload(data: string): string | null {
+  if (data.startsWith(PREFIX)) {
+    return data.slice(PREFIX.length);
   }
-
-  // Return as raw session ID if it looks valid
-  if (trimmed.length > 0) {
-    return trimmed;
+  // Also accept raw UUIDs/IDs
+  if (data.length > 0 && !data.includes(" ")) {
+    return data;
   }
-
   return null;
 }

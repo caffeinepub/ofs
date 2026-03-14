@@ -1,121 +1,157 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, Settings, Smartphone } from "lucide-react";
-import React from "react";
-import { BRANDING } from "../constants/branding";
-import { useInstallPrompt } from "../hooks/useInstallPrompt";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useGetCallerUserProfile } from "../hooks/useQueries";
+import { Home, Settings, X } from "lucide-react";
 
 interface MobileMenuProps {
-  onNavigateToProfile: () => void;
-  onClose: () => void;
+  onNavigateToProfile?: () => void;
+  onClose?: () => void;
 }
 
 export default function MobileMenu({
   onNavigateToProfile,
   onClose,
 }: MobileMenuProps) {
-  const { clear } = useInternetIdentity();
-  const queryClient = useQueryClient();
-  const { data: userProfile } = useGetCallerUserProfile();
-  const { isInstallable, promptInstall } = useInstallPrompt();
-
-  const displayName = userProfile?.displayName || "User";
-  const initials = displayName
-    .split(" ")
-    .map((n: string) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  const handleLogout = async () => {
-    await clear();
-    queryClient.clear();
-    onClose();
-  };
-
-  const handleProfileSettings = () => {
-    // Only navigate to profile — do NOT call onClose() here,
-    // as that would navigate back to '/' and override the profile navigation.
-    onNavigateToProfile();
-  };
-
-  const handleInstall = async () => {
-    await promptInstall();
-  };
+  const menuItems = [
+    { id: "home", label: "Home", icon: Home, action: onClose },
+    {
+      id: "profile",
+      label: "Profile Settings",
+      icon: Settings,
+      action: onNavigateToProfile,
+    },
+  ];
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 80,
+        backgroundColor: "var(--background)",
+        display: "flex",
+        flexDirection: "column",
+        maxWidth: "430px",
+        margin: "0 auto",
+      }}
+    >
       {/* Header */}
-      <div className="px-6 pt-8 pb-6 border-b border-border">
-        <div className="flex items-center gap-4">
-          {/* Avatar */}
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <span className="text-xl font-bold text-primary">{initials}</span>
-          </div>
-          {/* User info */}
-          <div className="flex-1 min-w-0">
-            <p className="text-xl font-bold text-foreground truncate">
-              {displayName}
-            </p>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {BRANDING.appName} User
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Menu items */}
-      <div className="flex flex-col gap-1 px-4 py-4 flex-1">
-        <button
-          type="button"
-          onClick={handleProfileSettings}
-          className="
-            flex items-center gap-4 w-full
-            min-h-[56px] px-4 rounded-xl
-            text-base font-medium text-foreground
-            hover:bg-muted active:bg-muted/80
-            transition-colors text-left
-          "
-        >
-          <Settings size={22} className="text-muted-foreground shrink-0" />
-          <span>Profile Settings</span>
-        </button>
-
-        {isInstallable && (
-          <button
-            type="button"
-            onClick={handleInstall}
-            className="
-              flex items-center gap-4 w-full
-              min-h-[56px] px-4 rounded-xl
-              text-base font-medium text-foreground
-              hover:bg-muted active:bg-muted/80
-              transition-colors text-left
-            "
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px",
+          borderBottom: "1px solid var(--border)",
+          backgroundColor: "var(--card)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              backgroundColor: "var(--primary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <Smartphone size={22} className="text-muted-foreground shrink-0" />
-            <span>Install App</span>
-          </button>
-        )}
-      </div>
-
-      {/* Logout */}
-      <div className="px-4 pb-8 border-t border-border pt-4">
+            <span style={{ color: "#fff", fontWeight: 800, fontSize: "11px" }}>
+              OFS
+            </span>
+          </div>
+          <span
+            style={{
+              fontSize: "18px",
+              fontWeight: 700,
+              color: "var(--foreground)",
+            }}
+          >
+            Menu
+          </span>
+        </div>
         <button
           type="button"
-          onClick={handleLogout}
-          className="
-            flex items-center gap-4 w-full
-            min-h-[56px] px-4 rounded-xl
-            text-base font-semibold text-destructive
-            hover:bg-destructive/10 active:bg-destructive/20
-            transition-colors text-left
-          "
+          onClick={onClose}
+          data-ocid="menu.close_button"
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            border: "none",
+            backgroundColor: "var(--muted)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "var(--foreground)",
+          }}
         >
-          <LogOut size={22} className="shrink-0" />
-          <span>Log Out</span>
+          <X style={{ width: "20px", height: "20px" }} />
         </button>
+      </div>
+
+      {/* Menu Items */}
+      <div
+        style={{
+          padding: "16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+        }}
+      >
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              data-ocid={`menu.${item.id}.button`}
+              onClick={item.action}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                padding: "18px 16px",
+                borderRadius: "14px",
+                border: "1px solid var(--border)",
+                backgroundColor: "var(--card)",
+                cursor: "pointer",
+                textAlign: "left",
+                width: "100%",
+              }}
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "12px",
+                  backgroundColor: "rgba(37,99,235,0.1)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Icon
+                  style={{
+                    width: "22px",
+                    height: "22px",
+                    color: "var(--primary)",
+                  }}
+                />
+              </div>
+              <span
+                style={{
+                  fontSize: "17px",
+                  fontWeight: 600,
+                  color: "var(--foreground)",
+                }}
+              >
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
